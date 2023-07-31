@@ -1,0 +1,2 @@
++ uartRxFetchLine中， 增加memset(line,0,len)对line进行初始化;
++ uartTxMonitor改为带返回，返回加入到发送缓冲的字节数；
