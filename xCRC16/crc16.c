@@ -2,7 +2,7 @@
 #include "crc16.h"
 
 #define INITIAL_CRC_CC3     0x1D0F
-#define CRC_CCITT_POLY			0x1021 	//CRC-CCITT, polynormial 0x1021.
+#define CRC_CCITT_POLY            0x1021     //CRC-CCITT, polynormial 0x1021.
 
 uint16_t CRC16(const uint8_t *ptr, int count, uint16_t crcInit)
 {

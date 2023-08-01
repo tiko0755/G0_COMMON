@@ -19,21 +19,22 @@
 
 /* Exported types ------------------------------------------------------------*/
 typedef struct{
-	UartDev_t uartdev;
-	PIN_T DE, DET;
-	//u8 squ;
-	u16 tick;
-	// cb
+    UartDev_t uartdev;
+    PIN_T DE, DET;
+    //u8 squ;
+    u16 tick;
+    // cb
+
 }Rs485Rsrc_t;
 
 typedef struct{
-	Rs485Rsrc_t rsrc;
-	u8 (*RxPolling)			(Rs485Rsrc_t *pRsrc);
-	u16 (*RxFetchFrame)	(Rs485Rsrc_t *pRsrc, u8* frame, u16 frameLen);
-//	u16 (*TxMonitor)	(Rs485Rsrc_t *pRsrc);
-	u16 (*Send)			(Rs485Rsrc_t *pRsrc, const u8* BUF, u16 len);	
-	void (*SendStr)	(Rs485Rsrc_t *pRsrc, const char* FORMAT_ORG, ...);
-	void (*TxPolling)	(Rs485Rsrc_t *pRsrc);
+    Rs485Rsrc_t rsrc;
+    u8 (*RxPolling)            (Rs485Rsrc_t *pRsrc);
+    u16 (*RxFetchFrame)    (Rs485Rsrc_t *pRsrc, u8* frame, u16 frameLen);
+//    u16 (*TxMonitor)    (Rs485Rsrc_t *pRsrc);
+    u16 (*Send)            (Rs485Rsrc_t *pRsrc, const u8* BUF, u16 len);    
+    void (*SendStr)    (Rs485Rsrc_t *pRsrc, const char* FORMAT_ORG, ...);
+    void (*TxPolling)    (Rs485Rsrc_t *pRsrc);
 }Rs485Dev_t;
 
 
@@ -43,21 +44,21 @@ typedef struct{
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 void setupRs485Dev(
-	Rs485Dev_t *pDev, 
-	UART_HandleTypeDef* huart,
-	u8* txPool, u16 txPoolLen,
-	u8* rxPool,	u16	rxPoolLen,
-	u8* rxDoubleBuff,	u16 rxBufLen,
-	const PIN_T DE,
-	const PIN_T DET,
-	s8 (*beforeSend)(void),
-	s8 (*afterSend)(UART_HandleTypeDef *huart)
+    Rs485Dev_t *pDev, 
+    UART_HandleTypeDef* huart,
+    u8* txPool, u16 txPoolLen,
+    u8* rxPool,    u16    rxPoolLen,
+    u8* rxDoubleBuff,    u16 rxBufLen,
+    const PIN_T DE,
+    const PIN_T DET,
+    s8 (*beforeSend)(void),
+    s8 (*afterSend)(UART_HandleTypeDef *huart)
 );
 
-	
+    
 //void setupRs485Dev1(
-//	Rs485Dev_t *pDev, 
-//	UartDev_t *pUartDev
+//    Rs485Dev_t *pDev, 
+//    UartDev_t *pUartDev
 //);
 
 #endif /* _MY_UART_H */

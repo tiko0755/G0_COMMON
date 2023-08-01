@@ -15,27 +15,27 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "misc.h"
-	 
-void as_OUTPUT_PP_NOPULL_LOW		(PIN_T PIN);
-void as_OUTPUT_PP_NOPULL_HIGH	(PIN_T PIN);
-void as_OUTPUT_PP_PULLUP_LOW		(PIN_T PIN);
-void as_OUTPUT_PP_PULLUP_HIGH	(PIN_T PIN);
-void as_OUTPUT_PP_PULLDWN_LOW	(PIN_T PIN);
-void as_OUTPUT_PP_PULLDWN_HIGH	(PIN_T PIN);
-void as_OUTPUT_OD_NOPULL_LOW		(PIN_T PIN);
-void as_OUTPUT_OD_NOPULL_HIGH	(PIN_T PIN);
-void as_OUTPUT_OD_PULLUP_LOW		(PIN_T PIN);
-void as_OUTPUT_OD_PULLUP_HIGH	(PIN_T PIN);
-void as_INPUT_NOPULL						(PIN_T PIN);
-void as_INPUT_PULLUP						(PIN_T PIN);
-void as_INPUT_PULLDWN					(PIN_T PIN);
+     
+void as_OUTPUT_PP_NOPULL_LOW        (PIN_T PIN);
+void as_OUTPUT_PP_NOPULL_HIGH    (PIN_T PIN);
+void as_OUTPUT_PP_PULLUP_LOW        (PIN_T PIN);
+void as_OUTPUT_PP_PULLUP_HIGH    (PIN_T PIN);
+void as_OUTPUT_PP_PULLDWN_LOW    (PIN_T PIN);
+void as_OUTPUT_PP_PULLDWN_HIGH    (PIN_T PIN);
+void as_OUTPUT_OD_NOPULL_LOW        (PIN_T PIN);
+void as_OUTPUT_OD_NOPULL_HIGH    (PIN_T PIN);
+void as_OUTPUT_OD_PULLUP_LOW        (PIN_T PIN);
+void as_OUTPUT_OD_PULLUP_HIGH    (PIN_T PIN);
+void as_INPUT_NOPULL                        (PIN_T PIN);
+void as_INPUT_PULLUP                        (PIN_T PIN);
+void as_INPUT_PULLDWN                    (PIN_T PIN);
 
 void writePin(PIN_T, GPIO_PinState);
 void togglePin(PIN_T);
 GPIO_PinState readPin(PIN_T);
 void writePinX(PIN_T, GPIO_PinState, ...);
 void togglePinX(PIN_T, ...);
-u32 readPinPinX(PIN_T, ...);	
+u32 readPinPinX(PIN_T, ...);    
 
 #ifdef __cplusplus
 }
