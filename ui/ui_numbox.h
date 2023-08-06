@@ -10,24 +10,24 @@ filename: ui_numBox.h
  @ typedefs
 ****************************************************************************/
 typedef struct{
-	char name[UI_NAME_LEN];
-	float num;
-	void (*uiPrint)(const char* FORMAT_ORG, ...);
-	uiCB onChangedTab[UI_MAX_EVENT];
+    char name[UI_NAME_LEN];
+    float num;
+    void (*uiPrint)(const char* FORMAT_ORG, ...);
+    uiCB onChangedTab[UI_MAX_EVENT];
 }numBox_rsrc_t;
 
 typedef struct{
-	numBox_rsrc_t rsrc;
-	u8 (*cmd)(numBox_rsrc_t*, const char* MSG);
-	void (*setColor)(numBox_rsrc_t*, u16 color);
-	void (*setNum)(numBox_rsrc_t*, float num);
-	s8 (*bindOnChanged)(numBox_rsrc_t*, uiCB);
+    numBox_rsrc_t rsrc;
+    u8 (*cmd)(numBox_rsrc_t*, const char* MSG);
+    void (*setColor)(numBox_rsrc_t*, u16 color);
+    void (*setNum)(numBox_rsrc_t*, float num);
+    s8 (*bindOnChanged)(numBox_rsrc_t*, uiCB);
 }numBox_t;
 
 void numBox_setup(
-	void *p,
-	const char* NAME,
-	void (*printLCD)(const char* FORMAT_ORG, ...)
+    void *p,
+    const char* NAME,
+    void (*printLCD)(const char* FORMAT_ORG, ...)
 );
 
 #endif

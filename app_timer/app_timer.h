@@ -44,7 +44,7 @@ typedef struct {
     appTmrRsrc_t rsrc;
     void (*isr)(appTmrRsrc_t* rsrc, uint16_t tick);
     void (*polling)(appTmrRsrc_t* rsrc);
-    int32_t (*start)(appTmrRsrc_t* rsrc, uint16_t interval, CB1 hldr, app_timer_type_t type);
+    int32_t (*start)(appTmrRsrc_t* rsrc, uint16_t interval, app_timer_type_t type, CB1 hldr, void* e);
     void (*stop)(appTmrRsrc_t* rsrc);
     uint32_t (*status)(appTmrRsrc_t* rsrc);
 }appTmrDev_t;

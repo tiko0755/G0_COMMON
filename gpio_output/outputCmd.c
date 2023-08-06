@@ -38,6 +38,10 @@ const char OUTPUT_HELP[] = {
 output.writepin(%pin, %state)
 output.toggle(%pin)
 *******************************************************************************/
+u8 outputCmdU8(void *dev, u8* CMD, void (*xprint)(const char* FORMAT_ORG, ...)){
+    return(outputCmd(dev,(char*)CMD, g_boardAddr, xprint));
+}
+
 u8 outputCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_ORG, ...)){
     s32 i,j,ii,jj;
     const char* line;

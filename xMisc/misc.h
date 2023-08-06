@@ -1,16 +1,16 @@
 /**********************************************************
 filename: misc.h
 **********************************************************/
-#ifndef _MISC_H_
-#define _MISC_H_
+#ifndef __MISC_H__
+#define __MISC_H__
 
+#include "config.h"
 #include <stdint.h>
-#include "stm32g0xx_hal.h"
 
 #define NOP __NOP
 #define CALLBACK_MSG_LEN    48
 #define DEV_NAME_LEN        16
-#define MAX_CMD_LEN            256
+#define MAX_CMD_LEN         256
 #define MAX_TASK            64
 #define MAX_INSTANCE        16
 
@@ -33,16 +33,13 @@ typedef enum{NONE_BLOCKING = 0, BLOCKING,} TRANSFER_BLOCK_T;
 /*****************************************************************************
  @ typedefs
 ****************************************************************************/
-typedef uint8_t         u8;
+typedef uint8_t      u8;
 typedef uint16_t     u16;
 typedef uint32_t     u32;
 typedef int8_t         s8;
 typedef int16_t     s16;
 //typedef int32_t     s32;
 typedef int            s32;
-
-typedef void (*CB)(void* argp);
-typedef void (*CBx)(u8 argc, void* argp);
 
 typedef struct {
     u8 boardAddr;
@@ -58,21 +55,6 @@ typedef struct {
     GPIO_TypeDef* GPIOx;    // Port Register Base addr.
     uint16_t GPIO_Pin;        // Pin
 } PIN_T;
-
-typedef struct{
-    //GPIO
-    PIN_T PA0,PA1,PA2;
-    PIN_T PB0,PB1,PB2,PB3;
-    PIN_T PC0,PC1,PC2,PC3;
-    PIN_T PD0,PD1,PD2,PD3;
-    //SPI IIC ADC TIM
-    void* SPI_HANDLE;
-    void* IIC_HANDLE;
-    void* UART_HANDLE;
-    void* TIM_HANDLE;
-    CB Setup;
-    //void (*Setup)(u8 argc, void* argp);
-}DEV_PORT;
 
 typedef struct {
     s32 mul;
@@ -112,9 +94,12 @@ typedef struct {
 
 extern char CMD_END[4];
 extern const u32 BAUD[8];
+extern u8 g_boardAddr;
+
 /* delay about 1us*/
 void miscDelay(u8 us);
 s16 strFormat(char *buf, u16 len, const char* FORMAT_ORG, ...);
 void devRename(char* oldName, const char* NEW_NAME);
+
 #endif
 

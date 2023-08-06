@@ -20,8 +20,8 @@
 #define UART_TX_BUFF_LEN    64        // send buffer size, in byte
 #define UART_ALL_FUNCTION    0        // [0]keep tiny usage
 
-
 /* Exported types ------------------------------------------------------------*/
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
 typedef struct{
     UART_HandleTypeDef* huart;
     RINGBUFF_T txRB;
@@ -62,6 +62,7 @@ typedef struct{
     void (*SendStrSync)(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...);
 #endif
 }UartDev_t;
+#pragma pack(pop)        //recover align bytes from 4 bytes
 
 /* Exported variables --------------------------------------------------------*/
 //extern u8 rxBufIndx;
@@ -76,6 +77,7 @@ void setupUartDev(
     u8* rxDoubleBuff,    u16 rxBufLen
 );
 u16 fetchLineFromRingBuffer(RINGBUFF_T* rb, char* line, u16 len);
+u16 fetchLineFromRingBufferU8(RINGBUFF_T* rb, u8* line, u16 len);
 s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const char* SYMBOL, char* line, u16 len);
 #endif /* _MY_UART_H */
 

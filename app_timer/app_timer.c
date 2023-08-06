@@ -22,7 +22,7 @@
  */
 static void appTmr_isr(appTmrRsrc_t* rsrc, uint16_t tick);
 static void appTmr_polling(appTmrRsrc_t* rsrc);
-static int32_t appTmr_start(appTmrRsrc_t* rsrc, uint16_t interval, CB1 hldr, app_timer_type_t type);
+static int32_t appTmr_start(appTmrRsrc_t* rsrc, uint16_t interval, app_timer_type_t type, CB1 hldr, void* e);
 static void appTmr_stop(appTmrRsrc_t* rsrc);
 static uint32_t appTmr_status(appTmrRsrc_t* rsrc);
 
@@ -40,13 +40,14 @@ void setup_appTmr(appTmrDev_t *d){
     d->status = appTmr_status;
 }
 
-static int32_t appTmr_start(appTmrRsrc_t* r, uint16_t interval, CB1 hldr, app_timer_type_t type){
-    if((type < POLLING_ONESHOT) || (type > ISR_REPEAT)){   return -1;    }
+static int32_t appTmr_start(appTmrRsrc_t* r, uint16_t interval, app_timer_type_t type, CB1 hldr, void* e){
+    if((type < 0) || (type > ISR_ONESHOT)){   return -1;    }
     r->handler = NULL;
     r->type = type;
     r->tick = 0;
     r->interval = interval;
     r->handler = hldr;
+    r->ptx = e;
     return 0;
 }
 

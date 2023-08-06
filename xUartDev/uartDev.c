@@ -238,6 +238,10 @@ static s32 uartIsTxRBuffEmpty(UartRsrc_t *pRsrc){
     return(RingBuffer_IsEmpty(&pRsrc->txRB));
 }
 
+u16 fetchLineFromRingBufferU8(RINGBUFF_T* rb, u8* line, u16 len){
+    return(fetchLineFromRingBuffer(rb, (char*)line, len));
+}
+
 u16 fetchLineFromRingBuffer(RINGBUFF_T* rb, char* line, u16 len){
     u8 ret = 0;
     char *p = NULL;
@@ -279,7 +283,11 @@ u16 fetchLineFromRingBuffer(RINGBUFF_T* rb, char* line, u16 len){
     
     if(p==NULL){    RingBuffer_InsertMult(rb, line, bytes);    }
 
-    return ret;
+    if(ret > 0){
+        return strlen(line);
+    }
+    
+    return 0;
 }
 
 s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const char* SYMBOL, char* line, u16 len){

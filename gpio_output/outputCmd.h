@@ -21,6 +21,7 @@
 extern const char OUTPUT_HELP[];
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
+u8 outputCmdU8(void *dev, u8* CMD, void (*xprint)(const char* FORMAT_ORG, ...));
 u8 outputCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_ORG, ...));
 
 #endif /* _OUTPUT_CMD_H */
