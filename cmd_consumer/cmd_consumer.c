@@ -15,12 +15,6 @@
 #include "cmd_consumer.h"
 #include "string.h"
 #include "misc.h"
-//#include "app_log.h"
-//#include "app_error.h"
-//#include "gr_uartDev.h"    //fetchLineFromRingBuffer()
-//#include "thsBoard.h"
-
-//#include "board.h"
 
 /*
  * PRIVATE FUNCTION DEFINITIONS
@@ -28,8 +22,8 @@
  */
 static void cmdConsumer_start(cmdConsumerRsrc_t* rsrc);
 static void cmdConsumer_stop(cmdConsumerRsrc_t* r);
-static u8 cmdConsumer_append(cmdConsumerRsrc_t*, cmd_consumer consumer);
-static u8 cmdConsumer_remove(cmdConsumerRsrc_t*, cmd_consumer consumer);
+static u8 cmdConsumer_append(cmdConsumerRsrc_t*, void*, consumer_cmd consumer);
+static u8 cmdConsumer_remove(cmdConsumerRsrc_t*, void*, consumer_cmd consumer);
 static void cmdConsumerTmr_handle(void* p_ctx);
 
 /*
@@ -83,8 +77,8 @@ static void cmdConsumerTmr_handle(void* p_ctx){
     // consume this command line
     executed = 0;
     for(u8 i=0;i<CMD_CONSUMER_MAX;i++){
-        if(r->consumers[i] == NULL){    continue;   }
-        if(r->consumers[i](cmdS, len, r->xprint)){
+        if(r->consumers[i].cmd == NULL){    continue;   }
+        if(r->consumers[i].cmd(r->consumers[i].dev, cmdS, len, r->xprint)){
             executed = 1;
             break;    
         }
@@ -105,28 +99,29 @@ static void cmdConsumer_stop(cmdConsumerRsrc_t* r){
     r->tmrID->stop(&r->tmrID->rsrc);
 }
 
-static u8 cmdConsumer_append(cmdConsumerRsrc_t* r, cmd_consumer consumer){
+static u8 cmdConsumer_append(cmdConsumerRsrc_t* r, void* d, consumer_cmd consumer){
     u8 same = 0;
     u16 nullIndx = 0xffff;
     int32_t i;
     
     for(i=0;i<MAX_CMD_LEN;i++){
-        if(consumer == r->consumers[i]){
+        if((consumer == r->consumers[i].cmd) && (d == r->consumers[i].dev)){
             same = 1;
             break;
         }
-        if((nullIndx==0xffff) && (r->consumers[i]==NULL)){
+        if((nullIndx==0xffff) && (r->consumers[i].cmd==NULL)){
             nullIndx = i;
         }
     }
     if(same==0 && nullIndx!=0xffff){
-        r->consumers[nullIndx] = consumer;
+        r->consumers[nullIndx].cmd = consumer;
+        r->consumers[nullIndx].dev = d;
         return 1;
     }
     return 0;
 }
 
-static u8 cmdConsumer_remove(cmdConsumerRsrc_t* r, cmd_consumer consumer){
+static u8 cmdConsumer_remove(cmdConsumerRsrc_t* r, void* d, consumer_cmd consumer){
     return 0;
 }
 
