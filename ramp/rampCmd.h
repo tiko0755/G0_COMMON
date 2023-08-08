@@ -21,6 +21,7 @@
 extern const char RAMP_HELP[];
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
+u8 rampCmdU8(void *dev, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, ...));
 u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_ORG, ...));
 
 #endif /* _OUTPUT_CMD_H */
