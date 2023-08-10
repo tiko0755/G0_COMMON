@@ -7,7 +7,7 @@ filename: misc.h
 #include "config.h"
 #include <stdint.h>
 
-#define NOP __NOP
+//#define NOP __NOP
 #define CALLBACK_MSG_LEN    48
 #define DEV_NAME_LEN        16
 #define MAX_CMD_LEN         256

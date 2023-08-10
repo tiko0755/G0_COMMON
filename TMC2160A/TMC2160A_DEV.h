@@ -65,10 +65,7 @@ void TMC2160A_dev_Setup(
     const PIN_T* DIA0,
     const PIN_T* DIA1,
     SPI_HandleTypeDef* hspi, 
-<<<<<<< HEAD
     u8 ch,
-=======
->>>>>>> ebd4896f8dc68f308bb49d43bee3886cc0bfa62e
     u16 ioBase,
     s8 (*ioWrite)(u16 addr, const u8 *pDat, u16 nBytes),
     s8 (*ioRead)(u16 addr, u8 *pDat, u16 nBytes)
