@@ -61,7 +61,7 @@ u8 tmc2160aCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORM
     }
     else if(sscanf(line, "regwrite 0x%x 0x%x", &i,&j)==2){
 			memset(buff,0,5);
-			buff[0] = 0x80&(i&0xff);
+			buff[0] = 0x80|(i&0xff);
 			buff[4] = j&0xff;	j>>=8;
 			buff[3] = j&0xff;	j>>=8;
 			buff[2] = j&0xff;	j>>=8;
