@@ -7,15 +7,20 @@ filename: uartLcdUi.h
 #include "misc.h"
 #include "uartDev.h"
 #include "ui_page.h"
+#include "app_timer.h"
 
 /*****************************************************************************
  @ typedefs
 ****************************************************************************/
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
+
 typedef struct{
     UartDev_t *pUartDev;
-    char ver[8];
+		appTmrDev_t* tmr;
+    char ver[12];
     void (*uiPrint)(const char* FORMAT_ORG, ...);
     uiPageNode* pageLst;
+		u16 tick;
 }uiRsrc_T;
 
 typedef struct{
@@ -39,10 +44,13 @@ typedef struct{
     s8 (*Bind)(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* EVENT, uiCB cb);
 }uiDev_T;
 
+#pragma pack(pop)           //recover align bytes from 4 bytes
+
 void uiSetup(
     void *pDev,
     UartDev_t* uartDev,
-    void (*printLCD)(const char* FORMAT_ORG, ...)
+    void (*printLCD)(const char* FORMAT_ORG, ...),
+		appTmrDev_t* tObj
 );
 
 #endif

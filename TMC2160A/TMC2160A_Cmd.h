@@ -1,5 +1,5 @@
 /******************** (C) COPYRIGHT 2022 tiko *****************************
-* File Name          : rampCmd.h
+* File Name          : tmc2160a_cmd.h
 * Author             : Tiko Zhong
 * Description        : This file provides a set of functions needed to manage the
 *                      stepper ramp generator

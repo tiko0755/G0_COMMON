@@ -9,6 +9,8 @@ filename: ui_numBox.h
 /*****************************************************************************
  @ typedefs
 ****************************************************************************/
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
+
 typedef struct{
     char name[UI_NAME_LEN];
     float num;
@@ -23,6 +25,7 @@ typedef struct{
     void (*setNum)(numBox_rsrc_t*, float num);
     s8 (*bindOnChanged)(numBox_rsrc_t*, uiCB);
 }numBox_t;
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
 
 void numBox_setup(
     void *p,

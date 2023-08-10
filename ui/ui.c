@@ -3,13 +3,15 @@ filename: uartLcdUi.c
 **********************************************************/
 
 /************************����ͷ�ļ�***************************************************/
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+
 #include "ui.h"
 #include "misc.h"
 
-#include "stdlib.h"
-#include "stdio.h"
-#include "stdarg.h"
-#include <string.h>
+#define UI_INTERVAL	(16)		// per 32ms polling
 
 /**********************************************************
  Private function
@@ -29,21 +31,24 @@ static s8 uiSet(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* 
 static s8 uiBind(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* EVENT, uiCB cb);
 static uiPageNode* uiGetPageNode(uiRsrc_T *r, const char* PAGE);
 static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout);
+
+static void uiPollingX(void*);
+
 /**********************************************************
  Public function
 **********************************************************/
 void uiSetup(
     void *pDev,
     UartDev_t* uartD,
-    void (*printLCD)(const char* FORMAT_ORG, ...)
+    void (*printLCD)(const char* FORMAT_ORG, ...),
+		appTmrDev_t* tObj
 ){
     uiDev_T* pd = (uiDev_T*)pDev;
     uiRsrc_T* pr = &pd->rsrc;
     pr->pUartDev = uartD;
     pr->uiPrint = printLCD;
-    if(uiWaitReady(pr, 3000) < 0){
-        print("LCD is not ready\n");
-    }
+		pr->tmr = tObj;
+
     // component setup
     pd->Polling = uiPolling;
     pd->Set = uiSet;
@@ -56,6 +61,10 @@ void uiSetup(
     pd->GetTxtBx = uiGetTxtBx;
     pd->GetTxtBxPic = uiGetTxtBxPic;
     pd->Visual = uiVisual;
+	
+		pr->tmr->start(&pr->tmr->rsrc, UI_INTERVAL, POLLING_REPEAT, uiPollingX, pr);
+	
+	
 }
 /**********************************************************
  read data
@@ -111,9 +120,13 @@ static pic_t* uiPlacePic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
  ui polling
 **********************************************************/
 static void uiPolling(uiRsrc_T* rsrc, u16 tick){
-    UNUSED(tick);
     char buff[UI_TEXT_MAX_LEN] = {0};
     uiPageNode* pgNode;
+		
+		rsrc->tick += tick;
+		if(rsrc->tick < 32){	return;		}
+		rsrc->tick = 0;
+		
     if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
         print("LCD:%s", buff);
         for (pgNode=rsrc->pageLst; pgNode != NULL; pgNode=pgNode->nxt)
@@ -128,11 +141,11 @@ static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout){
     char buff[UI_TEXT_MAX_LEN] = {0};
 
     while(tick < timeout){
-        rsrc->uiPrint("readVer=1");
+        rsrc->uiPrint("get pgxx.tAbout.txt");
         HAL_Delay(100);
         rsrc->pUartDev->RxPolling(&rsrc->pUartDev->rsrc);
         if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
-            if(sscanf(buff, "feeder.tVer.edit %s", rsrc->ver) == 1){
+            if(sscanf(buff, "max tester %s", rsrc->ver) == 1){
                 print("LCD Ver%s\n", rsrc->ver);
                 return 0;
             }
@@ -191,6 +204,13 @@ static pic_t* uiGetPic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
     uiPageNode *pgNode = uiGetPageNode(r,PAGE);
     if(pgNode==NULL){    return NULL;    }
     return(pgNode->obj.getPic(&pgNode->obj.rsrc, COMPONENT));
+}
+
+static void uiPollingX(void* e){
+	uiRsrc_T* r = (uiRsrc_T*)e;
+	r->pUartDev->TxPolling(&r->pUartDev->rsrc);
+	r->pUartDev->RxPolling(&r->pUartDev->rsrc);
+	uiPolling(r, UI_INTERVAL);
 }
 
 /**********************************************************

@@ -48,17 +48,13 @@ void TMC2160A_dev_Setup(
     r->ioBase = ioBase;
     r->ioRead = ioRead;
     r->ioWrite = ioWrite;
+	
+    d->Enable = tmc2160_Enable;
+    d->Disable = tmc2160_Disable;
+    d->readWriteArray = tmc2160_ReadWriteArray;	
+	
+		HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_SET);
     tmc2160_init(&r->obj, ch, &r->conf, tmc2160_defaultRegisterResetState);
-    
-    d->Enable = tmc2160_Enable;
-    d->Disable = tmc2160_Disable;
-    d->readWriteArray = tmc2160_ReadWriteArray;
-
-    tmc2160_init(&r->obj, 0, &r->conf, tmc2160_defaultRegisterResetState);
-    
-    d->Enable = tmc2160_Enable;
-    d->Disable = tmc2160_Disable;
-
     tmc2160_Enable(r);
 }
 
@@ -96,8 +92,10 @@ static void tmc2160_ReadWriteArray(TMC2160A_rsrc_t* r, uint8_t *data, size_t len
     HAL_StatusTypeDef sta;
     u8 rxBuff[16];
  
+		HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_RESET);
     sta = HAL_SPI_TransmitReceive(r->hspi, data, rxBuff, length, 5);
     print("<%s rx:0x%02x%02x%02x%02x%02x>\r\n",__func__,rxBuff[0],rxBuff[1],rxBuff[2],rxBuff[3],rxBuff[4]);
+		HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_SET);
 
 }
 

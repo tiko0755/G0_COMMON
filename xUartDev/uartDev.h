@@ -16,6 +16,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "misc.h"
 #include "ring_buffer.h"
+#include "app_timer.h"
 
 #define UART_TX_BUFF_LEN    64        // send buffer size, in byte
 #define UART_ALL_FUNCTION    0        // [0]keep tiny usage
@@ -26,6 +27,7 @@ typedef struct{
     UART_HandleTypeDef* huart;
     RINGBUFF_T txRB;
     RINGBUFF_T rxRB;
+		appTmrDev_t* tmr;
     //rx parameter
     u8 *rxPool, *rxBuf0, *rxBuf1, *rxCurBuf, *rxNxtBuf;
     __IO u16 rxPoolLen, rxBufLen;
@@ -34,6 +36,7 @@ typedef struct{
     __IO u16 txPoolLen;
     __IO u16 flag;
     __IO u32 errorCode;
+		u16 tick, rxPollingTim;
     
     u8 txBuff[UART_TX_BUFF_LEN];
     //callback
@@ -72,9 +75,10 @@ typedef struct{
 void setupUartDev(
     UartDev_t *pDev, 
     UART_HandleTypeDef* huart,
+		appTmrDev_t* tObj,
     u8* txPool, u16 txPoolLen,
     u8* rxPool,    u16    rxPoolLen,
-    u8* rxDoubleBuff,    u16 rxBufLen
+    u8* rxDoubleBuff,    u16 rxBufLen, u16 rxPollingTim
 );
 u16 fetchLineFromRingBuffer(RINGBUFF_T* rb, char* line, u16 len);
 u16 fetchLineFromRingBufferU8(RINGBUFF_T* rb, u8* line, u16 len);

@@ -46,9 +46,10 @@ typedef struct{
 void setupRs485Dev(
     Rs485Dev_t *pDev, 
     UART_HandleTypeDef* huart,
+		appTmrDev_t* tObj,
     u8* txPool, u16 txPoolLen,
     u8* rxPool,    u16    rxPoolLen,
-    u8* rxDoubleBuff,    u16 rxBufLen,
+    u8* rxDoubleBuff,    u16 rxBufLen,	u16 rxPollingTim,
     const PIN_T DE,
     const PIN_T DET,
     s8 (*beforeSend)(void),

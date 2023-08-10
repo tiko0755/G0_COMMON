@@ -18,6 +18,7 @@ filename: ui_txtBox.c
 // pgMain.tbStatus
 static u8 uiTxtbox_cmd(tbox_rsrc_t*, const char* MSG);
 static s8 uiTxtbox_set(tbox_rsrc_t* rsrc, const char* attr, const char* FORMAT, ...);
+static s8 uiTxtbox_get(tbox_rsrc_t* rsrc, const char* attr, char* content);
 static s8 uiTxtbox_bind(tbox_rsrc_t* rsrc, const char* EVNT, uiCB);
 static void tbox_setup(
     void *p,
@@ -46,6 +47,7 @@ static void tbox_setup(
 
     dev->cmd = uiTxtbox_cmd;
     dev->set = uiTxtbox_set;
+		dev->sync = uiTxtbox_get;
 
     dev->bind = uiTxtbox_bind;
 }
@@ -135,6 +137,12 @@ static s8 uiTxtbox_set(tbox_rsrc_t* rsrc, const char* attr, const char* FORMAT, 
     }
     else{    return -1;    }
 }
+
+static s8 uiTxtbox_get(tbox_rsrc_t* rsrc, const char* attr, char* content){
+		rsrc->uiPrint("get %s.%s.%s", rsrc->parentsName, rsrc->name, attr);
+		return 0;
+}
+
 
 static s8 uiTxtbox_bind(tbox_rsrc_t* rsrc, const char* EVNT, uiCB cb){
     s8 i;

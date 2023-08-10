@@ -9,6 +9,8 @@ filename: ui_pic.h
 /*****************************************************************************
  @ typedefs
 ****************************************************************************/
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
+
 typedef struct{
     char* parentsName;
     char name[UI_NAME_LEN];
@@ -28,6 +30,9 @@ typedef struct picBoxNode{
     pic_t obj;
     struct picBoxNode* nxt;
 } picBoxNode;
+
+#pragma pack(pop)           //recover align bytes from 4 bytes
+
 
 picBoxNode* picListInsert(picBoxNode** head,
     char *parentsName,

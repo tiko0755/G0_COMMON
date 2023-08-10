@@ -13,6 +13,8 @@ filename: ui_common.h
 #define UI_MAX_EVENT        4    // 最大回调事件函数的数量
 #define UI_EVNT_NAME_LEN    8    // 事件名称最长8个字节
 
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
+
 //typedef void (*uiCB)(int argc, void* argv[]);
 typedef void (*uiCB)(int argc, ...);
 typedef void (*uiCB_s)(const char*, ...);
@@ -21,5 +23,6 @@ typedef struct{
     char evnt[UI_EVNT_NAME_LEN];
     uiCB cb;
 }EventCB_t;
+#pragma pack(pop)           //recover align bytes from 4 bytes
 
 #endif

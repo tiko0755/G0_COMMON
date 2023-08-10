@@ -7,7 +7,7 @@ filename: tmc2160a_dev.h
 #include "misc.h"
 #include "tmc2160.h"
 
-#define TMC2160A_USING_NAME    0
+#define TMC2160A_USING_NAME    1
 
 /*****************************************************************************
  @ typedefs
@@ -21,7 +21,7 @@ typedef struct{
     const PIN_T *EN;
     const PIN_T *DIA0;
     const PIN_T *DIA1;
-
+		
     SPI_HandleTypeDef* hspi;
     // PWM generator
     TIM_HandleTypeDef* htim;

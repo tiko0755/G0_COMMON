@@ -19,29 +19,31 @@
 /* Public variables ---------------------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define UART_FRAM_HEAD    (0xed98ba)
+#define UART_FRAM_HEAD   (0xed98ba)
 #define UART_FRAM_END    (0x89abcd)
+#define UART_INTERVAL 	(1)
 /* Private macro -------------------------------------------------------------*/
 
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
-static u16 uartTxPolling(UartRsrc_t *pRsrc);
-static u8 uartRxMonitor(UartRsrc_t *pRsrc);
-static u16 uartRxFetchLine(UartRsrc_t *pRsrc, char* line, u16 len);
-static u16 uartRxFetchFrame(UartRsrc_t *pRsrc, u8* frame, u16 frameLen);
-static u16 uartTxSendFrame(UartRsrc_t *pRsrc, const u8* BUF, u16 len);
-static s16 uartSend(UartRsrc_t *pRsrc, const u8* BUF, u16 len);
+static void uartPolling(void* e);
+static u16 uartTxPolling(UartRsrc_t *r);
+static u8 uartRxMonitor(UartRsrc_t *r);
+static u16 uartRxFetchLine(UartRsrc_t *r, char* line, u16 len);
+static u16 uartRxFetchFrame(UartRsrc_t *r, u8* frame, u16 frameLen);
+static u16 uartTxSendFrame(UartRsrc_t *r, const u8* BUF, u16 len);
+static s16 uartSend(UartRsrc_t *r, const u8* BUF, u16 len);
 
 #if    UART_ALL_FUNCTION
-static void uartTxSendString(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...);
-static s16 uartSendSync(UartRsrc_t *pRsrc, const u8* BUF, u16 len);
-static void uartTxSendStringSync(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...);
+static void uartTxSendString(UartRsrc_t *r, const char* FORMAT_ORG, ...);
+static s16 uartSendSync(UartRsrc_t *r, const u8* BUF, u16 len);
+static void uartTxSendStringSync(UartRsrc_t *r, const char* FORMAT_ORG, ...);
 #endif
 
 static s16 TjcSendCmd(UartRsrc_t* p, const char* FORMAT_ORG, ...);
-static void uartStartRecv(UartRsrc_t *pRsrc);
-static u8 uartTestRestartRecv(UartRsrc_t *pRsrc);
-static s32 uartIsTxRBuffEmpty(UartRsrc_t *pRsrc);
+static void uartStartRecv(UartRsrc_t *r);
+static u8 uartTestRestartRecv(UartRsrc_t *r);
+static s32 uartIsTxRBuffEmpty(UartRsrc_t *r);
 /*******************************************************************************
 * Function Name  : uartSrscSetup
 * Description    : 
@@ -52,28 +54,31 @@ static s32 uartIsTxRBuffEmpty(UartRsrc_t *pRsrc);
 void setupUartDev(
     UartDev_t *pDev, 
     UART_HandleTypeDef* huart,
+		appTmrDev_t* tObj,
     u8* txPool, u16 txPoolLen,
     u8* rxPool,    u16    rxPoolLen,
-    u8* rxDoubleBuff,    u16 rxBufLen
+    u8* rxDoubleBuff,    u16 rxBufLen, u16 rxPollingTim
 ){
-    UartRsrc_t *pRsrc = &pDev->rsrc;
-    pRsrc->huart = huart;
+    UartRsrc_t *r = &pDev->rsrc;
+    r->huart = huart;
+		r->tmr = tObj;
     
-    pRsrc->rxPool = rxPool;
-    pRsrc->rxPoolLen = rxPoolLen;
+    r->rxPool = rxPool;
+    r->rxPoolLen = rxPoolLen;
     
-    pRsrc->rxBuf0 = rxDoubleBuff;
-    pRsrc->rxBuf1 = rxDoubleBuff + rxBufLen;
-    pRsrc->rxBufLen = rxBufLen;
+    r->rxBuf0 = rxDoubleBuff;
+    r->rxBuf1 = rxDoubleBuff + rxBufLen;
+    r->rxBufLen = rxBufLen;
     
-    pRsrc->txPool = txPool;
-    pRsrc->txPoolLen = txPoolLen;
+    r->txPool = txPool;
+    r->txPoolLen = txPoolLen;
+		r->rxPollingTim = rxPollingTim;
 
-    pRsrc->rxCurBuf = pRsrc->rxBuf0;
-    pRsrc->rxNxtBuf = pRsrc->rxBuf1;
+    r->rxCurBuf = r->rxBuf0;
+    r->rxNxtBuf = r->rxBuf1;
     
-    pRsrc->afterSend = NULL;
-    pRsrc->beforeSend = NULL;
+    r->afterSend = NULL;
+    r->beforeSend = NULL;
     
     //register op
     pDev->TxPolling = uartTxPolling;
@@ -95,66 +100,78 @@ void setupUartDev(
     pDev->StartRcv = uartStartRecv;
     pDev->TestRestartRcv = uartTestRestartRecv;
     
-    RingBuffer_Init(&pRsrc->txRB, pRsrc->txPool, 1, pRsrc->txPoolLen);
+    RingBuffer_Init(&r->txRB, r->txPool, 1, r->txPoolLen);
 }
 
-static void uartStartRecv(UartRsrc_t *pRsrc){
-    memset(pRsrc->rxBuf0,0,pRsrc->rxBufLen*2);
-    memset(pRsrc->rxPool,0,pRsrc->rxPoolLen);
-    RingBuffer_Init(&pRsrc->rxRB, pRsrc->rxPool, 1, pRsrc->rxPoolLen);    
-    pRsrc->rxCurBuf = pRsrc->rxBuf0;
-    pRsrc->rxNxtBuf = pRsrc->rxBuf1;
-    while(HAL_UART_Receive_IT(pRsrc->huart, pRsrc->rxCurBuf, pRsrc->rxBufLen) != HAL_OK){
+static void uartStartRecv(UartRsrc_t *r){
+    memset(r->rxBuf0,0,r->rxBufLen*2);
+    memset(r->rxPool,0,r->rxPoolLen);
+    RingBuffer_Init(&r->rxRB, r->rxPool, 1, r->rxPoolLen);    
+    r->rxCurBuf = r->rxBuf0;
+    r->rxNxtBuf = r->rxBuf1;
+    while(HAL_UART_Receive_IT(r->huart, r->rxCurBuf, r->rxBufLen) != HAL_OK){
     }
+		r->tmr->start(&r->tmr->rsrc, UART_INTERVAL, POLLING_REPEAT, uartPolling, r);
 }
 
-static u8 uartTestRestartRecv(UartRsrc_t *pRsrc){
+static u8 uartTestRestartRecv(UartRsrc_t *r){
     // auto start and restart
-    if((pRsrc->huart->RxState & BIT(1)) == 0){
-        HAL_UART_AbortReceive_IT(pRsrc->huart);
-        uartStartRecv(pRsrc);
+    if((r->huart->RxState & BIT(1)) == 0){
+        HAL_UART_AbortReceive_IT(r->huart);
+        uartStartRecv(r);
         return 1;
     }
     return 0;
 }
 
-static u16 uartTxPolling(UartRsrc_t *pRsrc){
+static void uartPolling(void* e){
+	UartRsrc_t *r = (UartRsrc_t*)e;
+	uartTxPolling(r);
+	r->tick += UART_INTERVAL;
+	if(r->tick < r->rxPollingTim){
+		return;
+	}
+	r->tick = 0;
+	uartRxMonitor(r);
+}
+
+static u16 uartTxPolling(UartRsrc_t *r){
     s32 bytes;
     
-    if(RingBuffer_IsEmpty(&pRsrc->txRB))    return 0;    
-    if(pRsrc->huart->gState & BIT(0))    return 0;
-    if(pRsrc->beforeSend && pRsrc->beforeSend()<0)    return 0;
+    if(RingBuffer_IsEmpty(&r->txRB))    return 0;    
+    if(r->huart->gState & BIT(0))    return 0;
+    if(r->beforeSend && r->beforeSend()<0)    return 0;
     
-    bytes = RingBuffer_PopMult(&pRsrc->txRB, (u8*)pRsrc->txBuff, UART_TX_BUFF_LEN);
+    bytes = RingBuffer_PopMult(&r->txRB, (u8*)r->txBuff, UART_TX_BUFF_LEN);
     
     if(bytes>0){
-        while(HAL_UART_Transmit_IT(pRsrc->huart, pRsrc->txBuff, bytes) != HAL_OK){}
+        while(HAL_UART_Transmit_IT(r->huart, r->txBuff, bytes) != HAL_OK){}
     }
     return bytes;
 }
 
-static s16 uartSend(UartRsrc_t *pRsrc, const u8* BUF, u16 len){
+static s16 uartSend(UartRsrc_t *r, const u8* BUF, u16 len){
     u16 sentBytes;
     if(BUF == NULL || len==0)    return 0;
     for(sentBytes = 0; sentBytes < len; ){
-        sentBytes += RingBuffer_InsertMult(&pRsrc->txRB, (void*)&BUF[sentBytes], len-sentBytes);
-        uartTxPolling(pRsrc);
+        sentBytes += RingBuffer_InsertMult(&r->txRB, (void*)&BUF[sentBytes], len-sentBytes);
+        uartTxPolling(r);
     }
     return sentBytes;
 }
 
 #if    UART_ALL_FUNCTION
-static s16 uartSendSync(UartRsrc_t *pRsrc, const u8* BUF, u16 len){
+static s16 uartSendSync(UartRsrc_t *r, const u8* BUF, u16 len){
     u16 sentBytes;
     for(sentBytes = 0; 1; ){
-        sentBytes += RingBuffer_InsertMult(&pRsrc->txRB, (void*)&BUF[sentBytes], len-sentBytes);
-        uartTxPolling(pRsrc);
-        if(RingBuffer_IsEmpty(&pRsrc->txRB))    break;    
+        sentBytes += RingBuffer_InsertMult(&r->txRB, (void*)&BUF[sentBytes], len-sentBytes);
+        uartTxPolling(r);
+        if(RingBuffer_IsEmpty(&r->txRB))    break;    
     }
     return sentBytes;
 }
 
-static void uartTxSendString(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...){
+static void uartTxSendString(UartRsrc_t *r, const char* FORMAT_ORG, ...){
     va_list ap;
     s16 bytes;
     char buff[512]={0};
@@ -164,10 +181,10 @@ static void uartTxSendString(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...){
     bytes = vsnprintf(buff, 512, FORMAT_ORG, ap);
     va_end(ap);
     
-    uartSend(pRsrc, (u8*)buff, bytes);
+    uartSend(r, (u8*)buff, bytes);
 }
 
-static void uartTxSendStringSync(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...){
+static void uartTxSendStringSync(UartRsrc_t *r, const char* FORMAT_ORG, ...){
     va_list ap;
     s16 bytes;
     char buff[512]={0};
@@ -177,11 +194,11 @@ static void uartTxSendStringSync(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...)
     bytes = vsnprintf(buff, 512, FORMAT_ORG, ap);
     va_end(ap);
     
-    uartSendSync(pRsrc, (u8*)buff, bytes);
+    uartSendSync(r, (u8*)buff, bytes);
 }
 #endif
 
-static u16 uartTxSendFrame(UartRsrc_t *pRsrc, const u8* BUF, u16 len){
+static u16 uartTxSendFrame(UartRsrc_t *r, const u8* BUF, u16 len){
     u16 crc;
     u8 buff[5];
     
@@ -191,51 +208,51 @@ static u16 uartTxSendFrame(UartRsrc_t *pRsrc, const u8* BUF, u16 len){
     buff[0] = UART_FRAM_HEAD&0xff;
     buff[1] = (UART_FRAM_HEAD>>8)&0xff;    
     buff[2] = (UART_FRAM_HEAD>>16)&0xff;
-    uartSend(pRsrc, buff, 3);
-    uartSend(pRsrc, BUF, len);
+    uartSend(r, buff, 3);
+    uartSend(r, BUF, len);
     buff[0] = crc & 0xff;
     buff[1] = (crc>>8) & 0xff;
     buff[2] = UART_FRAM_END&0xff;
     buff[3] = (UART_FRAM_END>>8)&0xff;
     buff[4] = (UART_FRAM_END>>16)&0xff;
-    uartSend(pRsrc, buff, 5);
+    uartSend(r, buff, 5);
 
     return (len+8);
 }
 
-static u8 uartRxMonitor(UartRsrc_t *pRsrc){
+static u8 uartRxMonitor(UartRsrc_t *r){
     s16 bytesReceived;
     u8* pTmp, abandond;
-    UART_HandleTypeDef *huart = pRsrc->huart;
+    UART_HandleTypeDef *huart = r->huart;
 
   /* Disable RXNE, PE and ERR (Frame error, noise error, overrun error) interrupts */
     __HAL_UART_DISABLE_IT(huart, UART_IT_RXNE|UART_IT_PE);
     bytesReceived = huart->RxXferSize - huart->RxXferCount;
     if(bytesReceived > 0){
         //restart uart
-        huart->pRxBuffPtr = pRsrc->rxNxtBuf;
-        huart->RxXferCount = pRsrc->rxBufLen;
+        huart->pRxBuffPtr = r->rxNxtBuf;
+        huart->RxXferCount = r->rxBufLen;
     }
     __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE|UART_IT_PE);
 
     if(bytesReceived <= 0)    return 0;
     
     // only keep the last received
-    while(RingBuffer_GetFree(&pRsrc->rxRB) < bytesReceived){
-        RingBuffer_Pop(&pRsrc->rxRB, &abandond);
-        pRsrc->errorCode |= BIT(0);
+    while(RingBuffer_GetFree(&r->rxRB) < bytesReceived){
+        RingBuffer_Pop(&r->rxRB, &abandond);
+        r->errorCode |= BIT(0);
     }
-    RingBuffer_InsertMult(&pRsrc->rxRB, pRsrc->rxCurBuf, bytesReceived);
+    RingBuffer_InsertMult(&r->rxRB, r->rxCurBuf, bytesReceived);
     
-    pTmp = pRsrc->rxCurBuf;
-    pRsrc->rxCurBuf = pRsrc->rxNxtBuf;
-    pRsrc->rxNxtBuf = pTmp;
+    pTmp = r->rxCurBuf;
+    r->rxCurBuf = r->rxNxtBuf;
+    r->rxNxtBuf = pTmp;
     
     return (bytesReceived);
 }
 
-static s32 uartIsTxRBuffEmpty(UartRsrc_t *pRsrc){
-    return(RingBuffer_IsEmpty(&pRsrc->txRB));
+static s32 uartIsTxRBuffEmpty(UartRsrc_t *r){
+    return(RingBuffer_IsEmpty(&r->txRB));
 }
 
 u16 fetchLineFromRingBufferU8(RINGBUFF_T* rb, u8* line, u16 len){
@@ -327,21 +344,21 @@ s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const char* SYMBOL, char* line, u16
 }
 
 //better if len equ rxRB' pool len
-static u16 uartRxFetchLine(UartRsrc_t *pRsrc, char* line, u16 len){
-    return(fetchLineFromRingBufferX(&pRsrc->rxRB, CMD_END, line, len));
-    //return(fetchLineFromRingBuffer(&pRsrc->rxRB, line, len));
+static u16 uartRxFetchLine(UartRsrc_t *r, char* line, u16 len){
+    return(fetchLineFromRingBufferX(&r->rxRB, CMD_END, line, len));
+    //return(fetchLineFromRingBuffer(&r->rxRB, line, len));
 }
 
-static u16 uartRxFetchFrame(UartRsrc_t *pRsrc, u8* frame, u16 frameLen){
+static u16 uartRxFetchFrame(UartRsrc_t *r, u8* frame, u16 frameLen){
     u16 i,j,crc0,crc1;
     u8 *head, *end, *pCrc, *buff = frame;
     u16 len = 0;
     s16 bytes,count;
     
-    if(RingBuffer_GetCount(&pRsrc->rxRB) < (3+2+3))    return 0;    // 3(head) + 2(CRC) + 3(end)
+    if(RingBuffer_GetCount(&r->rxRB) < (3+2+3))    return 0;    // 3(head) + 2(CRC) + 3(end)
         
-    bytes = RingBuffer_PopMult(&pRsrc->rxRB, buff, frameLen);
-    RingBuffer_Flush(&pRsrc->rxRB);
+    bytes = RingBuffer_PopMult(&r->rxRB, buff, frameLen);
+    RingBuffer_Flush(&r->rxRB);
     
     head = NULL;
     for(i=0;(i+2)<bytes;i++){
@@ -356,9 +373,9 @@ static u16 uartRxFetchFrame(UartRsrc_t *pRsrc, u8* frame, u16 frameLen){
     }
     // if do not meet head, just keep last 2 bytes, this two may be head beginning
     if(head==NULL){
-        RingBuffer_InsertMult(&pRsrc->rxRB, buff, bytes);
-//        if(bytes > 2)    RingBuffer_InsertMult(&pRsrc->rxRB, &buff[bytes-2], 2);
-//        else    RingBuffer_InsertMult(&pRsrc->rxRB, buff, bytes);
+        RingBuffer_InsertMult(&r->rxRB, buff, bytes);
+//        if(bytes > 2)    RingBuffer_InsertMult(&r->rxRB, &buff[bytes-2], 2);
+//        else    RingBuffer_InsertMult(&r->rxRB, buff, bytes);
         return 0;
     }
     
@@ -374,13 +391,13 @@ static u16 uartRxFetchFrame(UartRsrc_t *pRsrc, u8* frame, u16 frameLen){
     }
     // keep effective data
     if(end==NULL){
-        //RingBuffer_InsertMult(&pRsrc->rxRB, head, bytes-(head-buff));
-        RingBuffer_InsertMult(&pRsrc->rxRB, buff, bytes);
+        //RingBuffer_InsertMult(&r->rxRB, head, bytes-(head-buff));
+        RingBuffer_InsertMult(&r->rxRB, buff, bytes);
         return 0;
     }
 
     count = buff + bytes - (end+3);
-    if(count>0){    RingBuffer_InsertMult(&pRsrc->rxRB, end+3, count);    }
+    if(count>0){    RingBuffer_InsertMult(&r->rxRB, end+3, count);    }
     
     pCrc = end-1;
     crc0 = *pCrc;
@@ -392,7 +409,7 @@ static u16 uartRxFetchFrame(UartRsrc_t *pRsrc, u8* frame, u16 frameLen){
     if(crc0==crc1){
         memmove(frame, head+3, (len>=frameLen?frameLen:len));
         frame[len]=0;
-        RingBuffer_Flush(&pRsrc->rxRB);
+        RingBuffer_Flush(&r->rxRB);
         return len;
     }
 

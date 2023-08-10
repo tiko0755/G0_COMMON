@@ -13,6 +13,8 @@ filename: ui_page.h
 /*****************************************************************************
  @ typedefs
 ****************************************************************************/
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
+
 typedef struct{
     char name[UI_NAME_LEN];
     void (*uiPrint)(const char* FORMAT_ORG, ...);
@@ -42,6 +44,7 @@ typedef struct uiPageNode{
     uiPage_t obj;
     struct uiPageNode* nxt;
 } uiPageNode;
+#pragma pack(pop)           //recover align bytes from 4 bytes
 
 void uiPageSetup(
     void *p,

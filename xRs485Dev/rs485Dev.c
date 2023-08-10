@@ -41,9 +41,10 @@ static void rs485TxSendString(Rs485Rsrc_t *pRsrc, const char* FORMAT_ORG, ...);
 void setupRs485Dev(
     Rs485Dev_t *pDev,
     UART_HandleTypeDef* huart,
+		appTmrDev_t* tObj,
     u8* txPool, u16 txPoolLen,
     u8* rxPool,    u16    rxPoolLen,
-    u8* rxDoubleBuff,    u16 rxBufLen,
+    u8* rxDoubleBuff,    u16 rxBufLen, u16 rxPollingTim,
     const PIN_T DE,
     const PIN_T DET,
     s8 (*beforeSend)(void),
@@ -57,10 +58,10 @@ void setupRs485Dev(
     pRsrc->DET = DET;
     HAL_GPIO_WritePin(pRsrc->DE.GPIOx, pRsrc->DE.GPIO_Pin, GPIO_PIN_SET);
     
-    setupUartDev(&pRsrc->uartdev, huart,
+    setupUartDev(&pRsrc->uartdev, huart, tObj,
         txPool, txPoolLen,
         rxPool, rxPoolLen,
-        rxDoubleBuff, rxBufLen
+        rxDoubleBuff, rxBufLen, rxPollingTim
     );
     pRsrc->uartdev.rsrc.beforeSend = beforeSend;
     pRsrc->uartdev.rsrc.afterSend = afterSend;
