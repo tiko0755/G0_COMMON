@@ -43,34 +43,34 @@ u8 tmc2160aCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORM
     const char* line;
     TMC2160A_dev_t *d = dev;
     TMC2160A_rsrc_t *r = &d->rsrc;
-		u8 buff[5];
+        u8 buff[5];
 
     if(strncmp(CMD, r->name, strlen(r->name)) != 0)    return 0;
     line = &CMD[strlen(r->name)+1];
 
     //    .stops()
     if(sscanf(line, "regread 0x%x", &i)==1){
-			memset(buff,0,5);
-			buff[0] = i&0xff;
-			d->readWriteArray(r, buff, 5);
-			memset(buff,0,5);
-			buff[0] = i&0xff;
-			d->readWriteArray(r, buff, 5);
-			xprint("+ok@%d.%s.regread(0x%02x,0x%02x,0x%02x%02x%02x%02x)\r\n", brdAddr, r->name, i&0xff, 
-				buff[0],buff[1],buff[2],buff[3],buff[4]);
+            memset(buff,0,5);
+            buff[0] = i&0xff;
+            d->readWriteArray(r, buff, 5);
+            memset(buff,0,5);
+            buff[0] = i&0xff;
+            d->readWriteArray(r, buff, 5);
+            xprint("+ok@%d.%s.regread(0x%02x,0x%02x,0x%02x%02x%02x%02x)\r\n", brdAddr, r->name, i&0xff, 
+                buff[0],buff[1],buff[2],buff[3],buff[4]);
     }
     else if(sscanf(line, "regwrite 0x%x 0x%x", &i,&j)==2){
-			memset(buff,0,5);
-			buff[0] = 0x80|(i&0xff);
-			buff[4] = j&0xff;	j>>=8;
-			buff[3] = j&0xff;	j>>=8;
-			buff[2] = j&0xff;	j>>=8;
-			buff[1] = j&0xff;
-			d->readWriteArray(r, buff, 5);
-			xprint("+ok@%d.%s.regwrite(0x%02x,0x%02x,0x%02x%02x%02x%02x)\r\n", brdAddr, r->name, i&0xff,
-				buff[0],buff[1],buff[2],buff[3],buff[4]);
+            memset(buff,0,5);
+            buff[0] = 0x80|(i&0xff);
+            buff[4] = j&0xff;    j>>=8;
+            buff[3] = j&0xff;    j>>=8;
+            buff[2] = j&0xff;    j>>=8;
+            buff[1] = j&0xff;
+            d->readWriteArray(r, buff, 5);
+            xprint("+ok@%d.%s.regwrite(0x%02x,0x%02x,0x%02x%02x%02x%02x)\r\n", brdAddr, r->name, i&0xff,
+                buff[0],buff[1],buff[2],buff[3],buff[4]);
     }
-		
+        
     //.help()
     else if(strncmp(line, "help", strlen("help")) == 0){
         xprint("%s", TMC2160A_HELP);

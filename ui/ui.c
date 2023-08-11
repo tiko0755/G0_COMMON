@@ -10,8 +10,7 @@ filename: uartLcdUi.c
 
 #include "ui.h"
 #include "misc.h"
-
-#define UI_INTERVAL	(16)		// per 32ms polling
+#include "board.h"
 
 /**********************************************************
  Private function
@@ -25,14 +24,13 @@ static textbox_t* uiGetTxtBx(uiRsrc_T*,  const char* PAGE_NAME, const char* COMP
 static textboxPic_t* uiGetTxtBxPic(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_NAME);
 static pic_t* uiGetPic(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_NAME);
 
-static void uiPolling(uiRsrc_T*, u16 tick);
+static void uiPolling(uiRsrc_T* r, u16 tick);
 static s8 uiVisual(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis);
 static s8 uiSet(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* ATTR, const char* FORMAT_ORG, ...);
 static s8 uiBind(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* EVENT, uiCB cb);
 static uiPageNode* uiGetPageNode(uiRsrc_T *r, const char* PAGE);
 static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout);
 
-static void uiPollingX(void*);
 
 /**********************************************************
  Public function
@@ -40,17 +38,16 @@ static void uiPollingX(void*);
 void uiSetup(
     void *pDev,
     UartDev_t* uartD,
-    void (*printLCD)(const char* FORMAT_ORG, ...),
-		appTmrDev_t* tObj
+    void (*printLCD)(const char* FORMAT_ORG, ...)
 ){
     uiDev_T* pd = (uiDev_T*)pDev;
     uiRsrc_T* pr = &pd->rsrc;
     pr->pUartDev = uartD;
     pr->uiPrint = printLCD;
-		pr->tmr = tObj;
+    pr->hasLoaded = 0;
 
-    // component setup
     pd->Polling = uiPolling;
+    // component setup
     pd->Set = uiSet;
     pd->Bind = uiBind;
     pd->NewPage = uiNewPage;
@@ -61,10 +58,9 @@ void uiSetup(
     pd->GetTxtBx = uiGetTxtBx;
     pd->GetTxtBxPic = uiGetTxtBxPic;
     pd->Visual = uiVisual;
-	
-		pr->tmr->start(&pr->tmr->rsrc, UI_INTERVAL, POLLING_REPEAT, uiPollingX, pr);
-	
-	
+    
+    pr->pUartDev->StartRcv(&pr->pUartDev->rsrc);
+    printLCD("rest");    // reset LCD
 }
 /**********************************************************
  read data
@@ -122,13 +118,16 @@ static pic_t* uiPlacePic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
 static void uiPolling(uiRsrc_T* rsrc, u16 tick){
     char buff[UI_TEXT_MAX_LEN] = {0};
     uiPageNode* pgNode;
-		
-		rsrc->tick += tick;
-		if(rsrc->tick < 32){	return;		}
-		rsrc->tick = 0;
-		
+        
+    rsrc->tick += tick;
+    if(rsrc->tick < 32){    return;        }
+    rsrc->tick = 0;
+        
     if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
         print("LCD:%s", buff);
+        if(strncmp(buff, "pg00.loaded", strlen("pg00.loaded")) == 0){
+            rsrc->hasLoaded = 1;
+        }
         for (pgNode=rsrc->pageLst; pgNode != NULL; pgNode=pgNode->nxt)
         {
             if(pgNode->obj.cmd(&pgNode->obj.rsrc, buff)){    break;    }
@@ -141,7 +140,7 @@ static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout){
     char buff[UI_TEXT_MAX_LEN] = {0};
 
     while(tick < timeout){
-        rsrc->uiPrint("get pgxx.tAbout.txt");
+        rsrc->uiPrint("get pgxx.t_about.txt");
         HAL_Delay(100);
         rsrc->pUartDev->RxPolling(&rsrc->pUartDev->rsrc);
         if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
@@ -206,12 +205,7 @@ static pic_t* uiGetPic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
     return(pgNode->obj.getPic(&pgNode->obj.rsrc, COMPONENT));
 }
 
-static void uiPollingX(void* e){
-	uiRsrc_T* r = (uiRsrc_T*)e;
-	r->pUartDev->TxPolling(&r->pUartDev->rsrc);
-	r->pUartDev->RxPolling(&r->pUartDev->rsrc);
-	uiPolling(r, UI_INTERVAL);
-}
+
 
 /**********************************************************
  == THE END ==

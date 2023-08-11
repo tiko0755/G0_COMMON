@@ -23,7 +23,7 @@ typedef struct{
     tbox_rsrc_t rsrc;
     u8 (*cmd)(tbox_rsrc_t*, const char* MSG);
     s8 (*set)(tbox_rsrc_t*, const char* attr, const char* FORMAT, ...);
-		s8 (*sync)(tbox_rsrc_t*, const char* attr, char* content);
+	s8 (*sync)(tbox_rsrc_t*, const char* attr, char* content);
     s8 (*bind)(tbox_rsrc_t*, const char* EVNT, uiCB);
 }textbox_t;
 

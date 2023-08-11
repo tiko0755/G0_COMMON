@@ -7,7 +7,6 @@ filename: uartLcdUi.h
 #include "misc.h"
 #include "uartDev.h"
 #include "ui_page.h"
-#include "app_timer.h"
 
 /*****************************************************************************
  @ typedefs
@@ -16,15 +15,16 @@ filename: uartLcdUi.h
 
 typedef struct{
     UartDev_t *pUartDev;
-		appTmrDev_t* tmr;
     char ver[12];
     void (*uiPrint)(const char* FORMAT_ORG, ...);
     uiPageNode* pageLst;
-		u16 tick;
+    u16 tick;
+    u8 hasLoaded;
 }uiRsrc_T;
 
 typedef struct{
     uiRsrc_T rsrc;
+    void (*Polling)(uiRsrc_T* rsrc, u16 tick);
     //basic
     uiPage_t* (*NewPage)(uiRsrc_T *rsrc, const char* NAME);
     // place component
@@ -32,7 +32,6 @@ typedef struct{
     textboxPic_t* (*PlaceTxtBxPic)(uiRsrc_T*, const char* PAGE, const char* COMPONENT);
     pic_t* (*PlacePic)(uiRsrc_T*, const char* PAGE, const char* COMPONENT);
 
-    void (*Polling)(uiRsrc_T*, u16 tick);
     s8 (*Set)(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* ATTR, const char* FORMAT_ORG, ...);
     s8 (*Visual)(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis);
 
@@ -49,8 +48,7 @@ typedef struct{
 void uiSetup(
     void *pDev,
     UartDev_t* uartDev,
-    void (*printLCD)(const char* FORMAT_ORG, ...),
-		appTmrDev_t* tObj
+    void (*printLCD)(const char* FORMAT_ORG, ...)
 );
 
 #endif

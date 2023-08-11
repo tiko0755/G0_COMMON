@@ -47,7 +47,7 @@ static void tbox_setup(
 
     dev->cmd = uiTxtbox_cmd;
     dev->set = uiTxtbox_set;
-		dev->sync = uiTxtbox_get;
+    dev->sync = uiTxtbox_get;
 
     dev->bind = uiTxtbox_bind;
 }

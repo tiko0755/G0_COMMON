@@ -61,7 +61,7 @@ void setupUartDev(
 ){
     UartRsrc_t *r = &pDev->rsrc;
     r->huart = huart;
-		r->tmr = tObj;
+    r->tmr = tObj;
     
     r->rxPool = rxPool;
     r->rxPoolLen = rxPoolLen;
@@ -72,7 +72,7 @@ void setupUartDev(
     
     r->txPool = txPool;
     r->txPoolLen = txPoolLen;
-		r->rxPollingTim = rxPollingTim;
+    r->rxPollingTim = rxPollingTim;
 
     r->rxCurBuf = r->rxBuf0;
     r->rxNxtBuf = r->rxBuf1;
@@ -111,7 +111,7 @@ static void uartStartRecv(UartRsrc_t *r){
     r->rxNxtBuf = r->rxBuf1;
     while(HAL_UART_Receive_IT(r->huart, r->rxCurBuf, r->rxBufLen) != HAL_OK){
     }
-		r->tmr->start(&r->tmr->rsrc, UART_INTERVAL, POLLING_REPEAT, uartPolling, r);
+    r->tmr->start(&r->tmr->rsrc, UART_INTERVAL, POLLING_REPEAT, uartPolling, r);
 }
 
 static u8 uartTestRestartRecv(UartRsrc_t *r){
