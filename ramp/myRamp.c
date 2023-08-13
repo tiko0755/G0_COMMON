@@ -79,7 +79,7 @@ s32 rampSetup(
     ramp_computeDiv();    // compute rampDiv
     r->pulsePerSpot = 10;
     r->spdMin = 10000;
-    r->spdMax = 64000;
+    r->spdMax = 65500;
     r->isHoming = 0;
 
     d->isr = ramp_isr;
@@ -110,7 +110,7 @@ s32 rampSetup(
 
     // do NOT use "HAL_TIM_OnePulse_Start_IT" !!!
     if (HAL_TIM_OnePulse_Start(htim, tCh) != HAL_OK){    r->error |= BIT(0);    }
-
+    
     return 0;
 }
 
@@ -257,7 +257,9 @@ static void ramp_rotate(rampRsrc_t* r, u16 targetSpd){
     // by slow speed, do not use ramp
     if((r->spdCur <= r->spdMin) && ((r->spdTgt <= r->spdMin))){
         r->spdCur = r->spdMin;
+        print("<%s sta:%d>", __func__,HAL_TIM_Base_GetState(r->htim));
         if( HAL_TIM_Base_GetState(r->htim) == HAL_TIM_STATE_READY){
+            print("<%s 2>", __func__);
             x = 0xffff - r->spdMin;
             __HAL_TIM_SET_AUTORELOAD(r->htim, x);
             __HAL_TIM_SET_COMPARE(r->htim, r->tCh, x/2);

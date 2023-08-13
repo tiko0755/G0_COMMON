@@ -53,7 +53,7 @@ void TMC2160A_dev_Setup(
     d->Disable = tmc2160_Disable;
     d->readWriteArray = tmc2160_ReadWriteArray;	
 	
-		HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_SET);
     tmc2160_init(&r->obj, ch, &r->conf, tmc2160_defaultRegisterResetState);
     tmc2160_Enable(r);
 }
