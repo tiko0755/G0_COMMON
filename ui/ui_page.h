@@ -30,10 +30,11 @@ typedef struct{
     void (*initial)(uiPageRsrc_t*);
     void (*gotoPage)(uiPageRsrc_t*);
 
-    textbox_t* (*placeTxtBx)(uiPageRsrc_t*, const char* NAME);
-    textboxPic_t* (*placeTxtBxPic)(uiPageRsrc_t*, const char* NAME);
+    textbox_t* (*placeTxtBx)(uiPageRsrc_t*, const char* NAME, u8 txtMax);
+    textboxPic_t* (*placeTxtBxPic)(uiPageRsrc_t*, const char* NAME, u8 txtMax);
     pic_t* (*placePic)(uiPageRsrc_t*, const char* NAME);
     s8 (*Set)(uiPageRsrc_t*, const char* COMPONENT, const char* ATTR, const char* VAL);
+    s8 (*get)(uiPageRsrc_t*, const char* attr);
 
     textbox_t* (*getTxtBx)(uiPageRsrc_t*, const char* NAME);
     textboxPic_t* (*getTxtBxPic)(uiPageRsrc_t*, const char* NAME);

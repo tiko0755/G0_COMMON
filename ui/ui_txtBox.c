@@ -47,7 +47,7 @@ static void tbox_setup(
 
     dev->cmd = uiTxtbox_cmd;
     dev->set = uiTxtbox_set;
-    dev->sync = uiTxtbox_get;
+    dev->get = uiTxtbox_get;
 
     dev->bind = uiTxtbox_bind;
 }
@@ -93,15 +93,15 @@ static u8 uiTxtbox_cmd(tbox_rsrc_t* rsrc, const char* MSG){
                 if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, str);    }
             }
         }
-        if(strncmp(str, rsrc->txt, strlen(rsrc->txt)) != 0){
+        if((rsrc->txt!=NULL) && (strncmp(str, rsrc->txt, strlen(str))!=0)){
             for(i=0;i<UI_MAX_EVENT;i++){
                 if(strncmp(rsrc->cbTab[i].evnt, "change", strlen("change")) == 0){
                     if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, str);    }
                 }
             }
+            memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
+            strcpy(rsrc->txt, str);            
         }
-        memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
-        strcpy(rsrc->txt, str);
         return 1;
     }
     else if(strncmp(msg, "click ", strlen("click ")) == 0){
@@ -126,9 +126,11 @@ static s8 uiTxtbox_set(tbox_rsrc_t* rsrc, const char* attr, const char* FORMAT, 
     //send out
     if(bytes>=0){
         if(strncmp(attr,"txt",strlen("txt")) == 0){
-            rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, buf);
-            memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
-            strcpy(rsrc->txt, buf);
+            if(rsrc->txt){
+                rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, buf);
+                memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
+                strcpy(rsrc->txt, buf);            
+            }
         }
         else{
             rsrc->uiPrint("%s.%s.%s=%s", rsrc->parentsName, rsrc->name, attr, buf);
@@ -139,8 +141,8 @@ static s8 uiTxtbox_set(tbox_rsrc_t* rsrc, const char* attr, const char* FORMAT, 
 }
 
 static s8 uiTxtbox_get(tbox_rsrc_t* rsrc, const char* attr, char* content){
-		rsrc->uiPrint("get %s.%s.%s", rsrc->parentsName, rsrc->name, attr);
-		return 0;
+    rsrc->uiPrint("get %s.%s.%s", rsrc->parentsName, rsrc->name, attr);
+    return 0;
 }
 
 

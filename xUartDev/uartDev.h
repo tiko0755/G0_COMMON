@@ -27,7 +27,7 @@ typedef struct{
     UART_HandleTypeDef* huart;
     RINGBUFF_T txRB;
     RINGBUFF_T rxRB;
-		appTmrDev_t* tmr;
+    appTmrDev_t* tmr;
     //rx parameter
     u8 *rxPool, *rxBuf0, *rxBuf1, *rxCurBuf, *rxNxtBuf;
     __IO u16 rxPoolLen, rxBufLen;
@@ -36,7 +36,7 @@ typedef struct{
     __IO u16 txPoolLen;
     __IO u16 flag;
     __IO u32 errorCode;
-		u16 tick, rxPollingTim;
+    u16 tick, rxPollingTim;
     
     u8 txBuff[UART_TX_BUFF_LEN];
     //callback
@@ -50,7 +50,7 @@ typedef struct{
     u8 (*TestRestartRcv)(UartRsrc_t *pRsrc);
     u16 (*TxPolling)(UartRsrc_t *pRsrc);
     u8 (*RxPolling)        (UartRsrc_t *pRsrc);
-    u16 (*RxFetchLine)    (UartRsrc_t *pRsrc, char* line, u16 len);
+    u16 (*RxFetchLine)    (UartRsrc_t *pRsrc, u8* line, u16 len);
     u16 (*RxFetchFrame)    (UartRsrc_t *pRsrc, u8* frame, u16 frameLen);
     
     s16 (*Send)(UartRsrc_t *pRsrc, const u8* BUF, u16 len);
@@ -58,13 +58,13 @@ typedef struct{
 
     s32 (*IsTxRBuffEmpty)(UartRsrc_t *pRsrc);
 
-    s16 (*TJC_Send)(UartRsrc_t* p, const char* CMD, ...);
 #if    UART_ALL_FUNCTION
     s16 (*SendSync)(UartRsrc_t *pRsrc, const u8* BUF, u16 len);
     void (*SendStr)(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...);
     void (*SendStrSync)(UartRsrc_t *pRsrc, const char* FORMAT_ORG, ...);
 #endif
 }UartDev_t;
+
 #pragma pack(pop)        //recover align bytes from 4 bytes
 
 /* Exported variables --------------------------------------------------------*/
@@ -80,9 +80,11 @@ void setupUartDev(
     u8* rxPool,    u16    rxPoolLen,
     u8* rxDoubleBuff,    u16 rxBufLen, u16 rxPollingTim
 );
+
 u16 fetchLineFromRingBuffer(RINGBUFF_T* rb, char* line, u16 len);
 u16 fetchLineFromRingBufferU8(RINGBUFF_T* rb, u8* line, u16 len);
-s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const char* SYMBOL, char* line, u16 len);
+s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const u8* SYMBOL, u8 symbol_len, u8* line, u16 len);
+
 #endif /* _MY_UART_H */
 
 /******************* (C) COPYRIGHT 2015 INCUBECN *****END OF FILE****/

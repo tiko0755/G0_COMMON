@@ -29,7 +29,7 @@
 static void uartPolling(void* e);
 static u16 uartTxPolling(UartRsrc_t *r);
 static u8 uartRxMonitor(UartRsrc_t *r);
-static u16 uartRxFetchLine(UartRsrc_t *r, char* line, u16 len);
+static u16 uartRxFetchLine(UartRsrc_t *r, u8* line, u16 len);
 static u16 uartRxFetchFrame(UartRsrc_t *r, u8* frame, u16 frameLen);
 static u16 uartTxSendFrame(UartRsrc_t *r, const u8* BUF, u16 len);
 static s16 uartSend(UartRsrc_t *r, const u8* BUF, u16 len);
@@ -40,7 +40,6 @@ static s16 uartSendSync(UartRsrc_t *r, const u8* BUF, u16 len);
 static void uartTxSendStringSync(UartRsrc_t *r, const char* FORMAT_ORG, ...);
 #endif
 
-static s16 TjcSendCmd(UartRsrc_t* p, const char* FORMAT_ORG, ...);
 static void uartStartRecv(UartRsrc_t *r);
 static u8 uartTestRestartRecv(UartRsrc_t *r);
 static s32 uartIsTxRBuffEmpty(UartRsrc_t *r);
@@ -88,7 +87,6 @@ void setupUartDev(
     
     pDev->TxSendFrame = uartTxSendFrame;
     pDev->Send = uartSend;
-    pDev->TJC_Send = TjcSendCmd;
     pDev->IsTxRBuffEmpty = uartIsTxRBuffEmpty;
 
 #if    UART_ALL_FUNCTION
@@ -307,32 +305,43 @@ u16 fetchLineFromRingBuffer(RINGBUFF_T* rb, char* line, u16 len){
     return 0;
 }
 
-s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const char* SYMBOL, char* line, u16 len){
-    char x;
-    s32 ret, i, j, symbolLen, count, indx;
 
+s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const u8* SYMBOL, u8 symbol_len, u8* line, u16 len){
+    s32 ret, i, j, ii, count, smbLen;
+    u8 x,symbol[MAX_LINE_SYMBOL_LEN] = {0};
+    
     count = RingBuffer_GetCount(rb);
-    if((count <= 0) || (line==NULL) || (len==0))    return 0;
+    if((count < smbLen)|| (SYMBOL==NULL) || (line==NULL) || (len==0))    return 0;
+    
+    smbLen = MIN(MAX_LINE_SYMBOL_LEN, symbol_len); 
 
-    // find the fist "\r\n"
-    indx = 0;
-    symbolLen = strlen(SYMBOL);
-    j = -1;        // j be set the len of line
-    for(i=0;i<count;i++){
-        RingBuffer_Pop(rb, &x);        // pop
-        RingBuffer_Insert(rb, &x);    // push again
-        if(j == -1){
-            if(x==SYMBOL[indx]){    indx ++;    }
-            else{
-                indx = 0;
-                if(x==SYMBOL[0]){    indx ++;    }
-            }
-            if(indx == symbolLen){    j = i+1;    }
-        }
+    j = -1;        // if j be set, it stands for the len of line
+    memset(symbol, 0, smbLen);
+    i = RingBuffer_PopMult(rb, symbol, smbLen);         // pop first
+    if(i != smbLen){
+        RingBuffer_InsertMult(rb, symbol, i);
+        return -1;
     }
-    if(j == -1){    return -1;    }
+    do{
+        if(memcmp(symbol, SYMBOL, smbLen) == 0){
+            j = i;
+        }
+        
+        RingBuffer_Insert(rb, &symbol[0]);
+        for(ii=0; ii<smbLen-1; ii++){
+            symbol[ii] = symbol[ii+1];
+        }
+        // will pop 1 bytes, or fail will return 0
+        if(RingBuffer_Pop(rb, &symbol[smbLen-1])==0){
+            break;
+        }
+        i++;
+    }while(i < count);
+    RingBuffer_InsertMult(rb, symbol, smbLen);         // push finally
 
-    // only take the last receive
+    if(j < 0){    return -1;    }
+
+    // count bytes should be abandoned due to the lack of line
     count = j-len;
     for(i=0;i<count;i++){
         RingBuffer_Pop(rb, &x);
@@ -344,9 +353,8 @@ s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const char* SYMBOL, char* line, u16
 }
 
 //better if len equ rxRB' pool len
-static u16 uartRxFetchLine(UartRsrc_t *r, char* line, u16 len){
-    return(fetchLineFromRingBufferX(&r->rxRB, CMD_END, line, len));
-    //return(fetchLineFromRingBuffer(&r->rxRB, line, len));
+static u16 uartRxFetchLine(UartRsrc_t *r, u8* line, u16 len){
+    return(fetchLineFromRingBufferX(&r->rxRB, (const u8*)CMD_END, strlen(CMD_END), (u8*)line, len));
 }
 
 static u16 uartRxFetchFrame(UartRsrc_t *r, u8* frame, u16 frameLen){
@@ -362,7 +370,7 @@ static u16 uartRxFetchFrame(UartRsrc_t *r, u8* frame, u16 frameLen){
     
     head = NULL;
     for(i=0;(i+2)<bytes;i++){
-        if(    (buff[i+0] == (UART_FRAM_HEAD & 0XFF)) &&
+        if( (buff[i+0] == (UART_FRAM_HEAD & 0XFF)) &&
             (buff[i+1] == ((UART_FRAM_HEAD>>8) & 0XFF)) &&
             (buff[i+2] == ((UART_FRAM_HEAD>>16) & 0XFF))
         ){
@@ -414,29 +422,6 @@ static u16 uartRxFetchFrame(UartRsrc_t *r, u8* frame, u16 frameLen){
     }
 
     return 0;
-}
-
-static s16 TjcSendCmd(UartRsrc_t* p, const char* FORMAT_ORG, ...){
-    u8 buf[100] = {0};
-    s32 len;
-    va_list ap;
-    s16 bytes;
-    //take string
-    if(FORMAT_ORG == NULL)    return -1;
-    memset(buf, 0, 100);
-    va_start(ap, FORMAT_ORG);
-    bytes = vsnprintf((char*)buf, 100, FORMAT_ORG, ap);
-    va_end(ap);
-
-    len = strlen((char*)buf);
-    if(len <= 0)    return -2;
-    buf[len++] = 0xff;
-    buf[len++] = 0xff;
-    buf[len++] = 0xff;
-    uartSend(p, buf, len);    // load to ringbuffer
-//    p->uart.TxPolling(&p->uart.rsrc);    // send out
-//    HAL_Delay(5);
-    return bytes;
 }
 
 /******************* (C) COPYRIGHT 2007 STMicroelectronics *****END OF FILE****/

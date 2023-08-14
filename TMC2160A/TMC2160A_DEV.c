@@ -89,18 +89,13 @@ static void tmc2160_Default(TMC2160A_rsrc_t* r){
 
 
 static void tmc2160_ReadWriteArray(TMC2160A_rsrc_t* r, uint8_t *data, size_t length){
-    HAL_StatusTypeDef sta;
     u8 rxBuff[16];
- 
     print("<%s data:0x%02x %02x%02x%02x%02x>\r\n",__func__,data[0],data[1],data[2],data[3],data[4]);
-    
-    
     HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_RESET);
-    sta = HAL_SPI_TransmitReceive(r->hspi, data, rxBuff, length, 5);
+    HAL_SPI_TransmitReceive(r->hspi, data, rxBuff, length, 5);
     memcpy(data,rxBuff,5);
     print("<%s rx:0x%02x%02x%02x%02x%02x>\r\n",__func__,rxBuff[0],rxBuff[1],rxBuff[2],rxBuff[3],rxBuff[4]);
     HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_SET);
-
 }
 
 

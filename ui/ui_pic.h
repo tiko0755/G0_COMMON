@@ -14,15 +14,16 @@ filename: ui_pic.h
 typedef struct{
     char* parentsName;
     char name[UI_NAME_LEN];
-    u16 pic;
     void (*uiPrint)(const char* FORMAT_ORG, ...);
     EventCB_t cbTab[UI_MAX_EVENT];
+    u16 pic;
 }pic_rsrc_t;
 
 typedef struct{
     pic_rsrc_t rsrc;
     u8 (*cmd)(pic_rsrc_t*, const char* MSG);
     s8 (*set)(pic_rsrc_t*, const char* attr, const char* FORMAT, ...);
+    s8 (*get)(pic_rsrc_t*, const char* attr);
     s8 (*bind)(pic_rsrc_t*, const char* EVNT, uiCB);
 }pic_t;
 

@@ -23,6 +23,7 @@ typedef struct{
     char evnt[UI_EVNT_NAME_LEN];
     uiCB cb;
 }EventCB_t;
+
 #pragma pack(pop)           //recover align bytes from 4 bytes
 
 #endif

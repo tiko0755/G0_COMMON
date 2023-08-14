@@ -17,8 +17,8 @@ filename: uartLcdUi.c
 **********************************************************/
 // pgMain.tbStatus
 static uiPage_t* uiNewPage(uiRsrc_T *rsrc, const char* NAME);
-static textbox_t* uiPlaceTxtBx(uiRsrc_T*, const char* PAGE, const char* COMPONENT);
-static textboxPic_t* uiPlaceTxtBxPic(uiRsrc_T*, const char* PAGE, const char* COMPONENT);
+static textbox_t* uiPlaceTxtBx(uiRsrc_T*, const char* PAGE, const char* COMPONENT, u8 txtMax);
+static textboxPic_t* uiPlaceTxtBxPic(uiRsrc_T*, const char* PAGE, const char* COMPONENT, u8 txtMax);
 static pic_t* uiPlacePic(uiRsrc_T*, const char* PAGE, const char* COMPONENT);
 static textbox_t* uiGetTxtBx(uiRsrc_T*,  const char* PAGE_NAME, const char* COMPONENT_NAME);
 static textboxPic_t* uiGetTxtBxPic(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_NAME);
@@ -27,6 +27,7 @@ static pic_t* uiGetPic(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_N
 static void uiPolling(uiRsrc_T* r, u16 tick);
 static s8 uiVisual(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis);
 static s8 uiSet(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* ATTR, const char* FORMAT_ORG, ...);
+static s8 uiGet(uiRsrc_T*, const char* PAGE, const char* COMPONENT, char* ATTR);
 static s8 uiBind(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* EVENT, uiCB cb);
 static uiPageNode* uiGetPageNode(uiRsrc_T *r, const char* PAGE);
 static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout);
@@ -94,16 +95,16 @@ static uiPageNode* uiGetPageNode(uiRsrc_T *r, const char* PAGE){
     return NULL;
 }
 
-static textbox_t* uiPlaceTxtBx(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
+static textbox_t* uiPlaceTxtBx(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 txtMax){
     uiPageNode *pgNode = uiGetPageNode(r,PAGE);
     if(pgNode==NULL){    return NULL;    }
-    return(pgNode->obj.placeTxtBx(&pgNode->obj.rsrc, COMPONENT));
+    return(pgNode->obj.placeTxtBx(&pgNode->obj.rsrc, COMPONENT, txtMax));
 }
 
-static textboxPic_t* uiPlaceTxtBxPic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
+static textboxPic_t* uiPlaceTxtBxPic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 txtMax){
     uiPageNode *pgNode = uiGetPageNode(r,PAGE);
     if(pgNode==NULL){    return NULL;    }
-    return(pgNode->obj.placeTxtBxPic(&pgNode->obj.rsrc, COMPONENT));
+    return(pgNode->obj.placeTxtBxPic(&pgNode->obj.rsrc, COMPONENT, txtMax));
 }
 
 static pic_t* uiPlacePic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
@@ -115,10 +116,14 @@ static pic_t* uiPlacePic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
 /**********************************************************
  ui polling
 **********************************************************/
+static u8 uiIsGetResp(u8* cmd, u16 len){
+    return 0;
+}
+
 static void uiPolling(uiRsrc_T* rsrc, u16 tick){
     char buff[UI_TEXT_MAX_LEN] = {0};
     uiPageNode* pgNode;
-        
+
     rsrc->tick += tick;
     if(rsrc->tick < 32){    return;        }
     rsrc->tick = 0;
@@ -127,6 +132,9 @@ static void uiPolling(uiRsrc_T* rsrc, u16 tick){
         print("LCD:%s", buff);
         if(strncmp(buff, "pg00.loaded", strlen("pg00.loaded")) == 0){
             rsrc->hasLoaded = 1;
+        }
+        // to meet get command, format: p[str]0xff 0xff 0xff
+        else if(uiIsGetResp((u8*)buff, 111)){
         }
         for (pgNode=rsrc->pageLst; pgNode != NULL; pgNode=pgNode->nxt)
         {
@@ -165,7 +173,7 @@ static s8 uiSet(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, const char
     va_end(ap);
     if(bytes < 0){    return -1;    }
 
-    for (pgNode=r->pageLst; pgNode != NULL; pgNode=pgNode->nxt)
+    for(pgNode=r->pageLst; pgNode != NULL; pgNode=pgNode->nxt)
     {
         if(strncmp(PAGE, pgNode->obj.rsrc.name, strlen(pgNode->obj.rsrc.name)) != 0){    continue;    }
         return (pgNode->obj.Set(&pgNode->obj.rsrc, COMPONENT, ATTR, buf));
@@ -173,8 +181,13 @@ static s8 uiSet(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, const char
     return -2;
 }
 
+static s8 uiGet(uiRsrc_T* r, const char* PAGE, const char* COMPONENT, char* ATTR){
+    return 0;
+}
+
 static s8 uiVisual(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis){
     r->uiPrint("vis %s.%s %d", PAGE, COMPONENT, vis);
+    return 0;
 }
 
 static s8 uiBind(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, const char* EVENT, uiCB cb){

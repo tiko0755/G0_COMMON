@@ -46,7 +46,7 @@ static u8 ramp_isShelteredRefL(rampRsrc_t* r);
 static u8 ramp_isShelteredRefR(rampRsrc_t* r);
 
 static u16 rampDiv = 0;
-static void ramp_computeDiv();
+static u16 ramp_computeDiv(void);
 static u16 ramp_computeMul(u16 delta, u8* pComp);
 static void ramp_updateSpdCur(rampRsrc_t* r);
 static void ramp_rotate(rampRsrc_t* r, u16 targetSpd);
@@ -76,7 +76,7 @@ s32 rampSetup(
     strcpy(r->name, NAME);
     r->en = 1;
 
-    ramp_computeDiv();    // compute rampDiv
+    rampDiv = ramp_computeDiv();    // compute rampDiv
     r->pulsePerSpot = 10;
     r->spdMin = 10000;
     r->spdMax = 65500;
@@ -181,11 +181,11 @@ static void ramp_dirR(rampRsrc_t* r){
     r->status &= (0xff^BIT(RAMP_STATUS_BIT_DIR));
 }
 
-static void ramp_computeDiv(){
+static u16 ramp_computeDiv(void){
     u16 i;
     u16 x = 0;
     for(i=0;i<RAMP_TAB_LEN;i++){    x += RAMP_TAB[i];     }
-    rampDiv = x;
+    return x;
 }
 
 static u16 ramp_computeMul(u16 delta, u8* pComp){

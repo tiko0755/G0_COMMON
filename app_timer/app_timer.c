@@ -41,7 +41,7 @@ void setup_appTmr(appTmrDev_t *d){
 }
 
 static int32_t appTmr_start(appTmrRsrc_t* r, uint16_t interval, app_timer_type_t type, CB1 hldr, void* e){
-    if((type < 0) || (type > ISR_ONESHOT)){   return -1;    }
+    if((type > ISR_ONESHOT)){   return -1;    }
     r->handler = NULL;
     r->type = type;
     r->tick = 0;

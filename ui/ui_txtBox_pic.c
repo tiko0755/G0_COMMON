@@ -90,15 +90,15 @@ static u8 uiTxtboxPic_cmd(tboxPic_rsrc_t* rsrc, const char* MSG){
                 if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(2, j, str);    }
             }
         }
-        if(strncmp(str, rsrc->txt, strlen(str)) != 0){
+        if((rsrc->txt!=NULL) && (strncmp(str, rsrc->txt, strlen(str))!=0)){
             for(i=0;i<UI_MAX_EVENT;i++){
                 if(strncmp(rsrc->cbTab[i].evnt, "change", strlen("change")) == 0){
                     if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(2, j, str);    }
                 }
             }
+            memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
+            strcpy(rsrc->txt, str);            
         }
-        memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
-        strcpy(rsrc->txt, str);
         return 1;
     }
     return 0;
@@ -115,9 +115,11 @@ static s8 uiTxtboxPic_set(tboxPic_rsrc_t* rsrc, const char* attr, const char* FO
     //send out
     if(bytes>=0){
         if(strncmp(attr,"txt",strlen("txt")) == 0){
-            rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, buf);
-            memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
-            strcpy(rsrc->txt, buf);
+            if(rsrc->txt){
+                rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, buf);
+                memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
+                strcpy(rsrc->txt, buf);            
+            }
         }
         else{
             rsrc->uiPrint("%s.%s.%s=%s", rsrc->parentsName, rsrc->name, attr, buf);

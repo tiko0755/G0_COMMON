@@ -20,8 +20,8 @@ static void uiPage_setColor(uiPageRsrc_t*, u16 color);
 static void uiPage_initial(uiPageRsrc_t*);
 static s8 uiPageSet(uiPageRsrc_t*, const char* COMPONENT, const char* ATTR, const char* VAL);
 
-static textbox_t* uiPage_placeTxtBx(uiPageRsrc_t*, const char* NAME);
-static textboxPic_t* uiPage_placeTxtBxPic(uiPageRsrc_t*, const char* NAME);
+static textbox_t* uiPage_placeTxtBx(uiPageRsrc_t*, const char* NAME, u8 txtMax);
+static textboxPic_t* uiPage_placeTxtBxPic(uiPageRsrc_t*, const char* NAME, u8 txtMax);
 static pic_t* uiPage_placePic(uiPageRsrc_t*, const char* NAME);
 
 static textbox_t* uiPage_getTxtBx(uiPageRsrc_t*, const char* NAME);
@@ -104,14 +104,28 @@ static void uiPage_setColor(uiPageRsrc_t* rsrc, u16 color){
 static void uiPage_initial(uiPageRsrc_t* rsrc){
 }
 
-static textbox_t* uiPage_placeTxtBx(uiPageRsrc_t *r, const char* NAME){
+static textbox_t* uiPage_placeTxtBx(uiPageRsrc_t *r, const char* NAME, u8 txtMax){
+    char* txt = NULL;
+    if(txtMax){
+        txt = (char*)malloc(sizeof(txtMax));
+        if(txt == NULL)    return NULL;    
+    }
+    
     txtBoxNode* p = tbListInsert(&r->tbLst, r->name, NAME, r->uiPrint);
     if(p == NULL){    return NULL;    }
+    p->obj.rsrc.txt = txt;
     return (&p->obj);
 }
-static textboxPic_t* uiPage_placeTxtBxPic(uiPageRsrc_t *r, const char* NAME){
+static textboxPic_t* uiPage_placeTxtBxPic(uiPageRsrc_t *r, const char* NAME, u8 txtMax){
+    char* txt = NULL;
+    if(txtMax){
+        txt = (char*)malloc(sizeof(txtMax));
+        if(txt == NULL)    return NULL;    
+    }
+
     txtBoxPicNode* p = tbPicListInsert(&r->tbPicLst, r->name, NAME, r->uiPrint);
     if(p == NULL){    return NULL;    }
+    p->obj.rsrc.txt = txt;
     return (&p->obj);
 }
 

@@ -13,6 +13,8 @@ filename: misc.h
 #define MAX_CMD_LEN         256
 #define MAX_TASK            64
 #define MAX_INSTANCE        16
+#define MAX_LINE_SYMBOL_LEN     (8)
+
 
 #define    BIT(n)    ((u32)1<<n)
 #define    BIT_LEN(n)    (0XFFFFFFFF>>(32-n))
@@ -91,6 +93,11 @@ typedef struct {
     const char* format;
     //s32 (*func)    (void* pRsrc, u8 argc, void* argv);
 } CMD_FUNC_T;
+
+typedef struct {
+    void* p;
+    u16 len;
+} buff_t;
 
 extern char CMD_END[4];
 extern const u32 BAUD[8];
