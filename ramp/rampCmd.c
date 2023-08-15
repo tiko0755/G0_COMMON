@@ -18,21 +18,21 @@
 /* Private variables ---------------------------------------------------------*/
 const char RAMP_HELP[] = {
     "ramp command:"
-    "\n %brd.%dev.help()"
-    "\n %brd.%dev.stops()"
-    "\n %brd.%dev.stopi()"
-    "\n %brd.%dev.gohome()/(maxspd)"
-    "\n %brd.%dev.rotatel(spd)"
-    "\n %brd.%dev.rotater(spd)"
-    "\n %brd.%dev.moveto(absPos)/(absPos,maxspd)"
-    "\n %brd.%dev.moveby(refPos)/(refPos,maxspd)"
-    "\n %brd.%dev.homing(maxspd)"
-    "\n %brd.%dev.ishoming()"
-    "\n %brd.%dev.pos()"
-    "\n %brd.%dev.spd()"
-    "\n %brd.%dev.info()"
-    "\n %brd.%dev.default()"
-    "\n %brd.%dev.spd(min,max)/()"
+    "\n .help()"
+    "\n .stops()"
+    "\n .stopi()"
+    "\n .gohome()/(maxspd)"
+    "\n .rotatel(spd)"
+    "\n .rotater(spd)"
+    "\n .moveto(absPos)/(absPos,maxspd)"
+    "\n .moveby(refPos)/(refPos,maxspd)"
+    "\n .homing(maxspd)"
+    "\n .ishoming()"
+    "\n .pos()"
+    "\n .%dev.spd()"
+    "\n .%dev.info()"
+    "\n .%dev.default()"
+    "\n .%dev.spd(min,max)/()"
     "\n"
 };
 
@@ -151,8 +151,6 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
         xprint("+ok@%d.%s.help()\r\n%s", brdAddr, r->name);
     }
 
-
-
     //    .homing(spd)
     else if(sscanf(line, "homing %d", &i)==1){
         d->homing(r,i);
@@ -200,6 +198,14 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
     //    .speed()
     else if(strncmp(line, "speed", strlen("speed")) == 0){
         xprint("+ok@%d.%s.speed(%d,%d)\r\n", brdAddr, r->name, r->spdMin, r->spdMax);
+    }
+
+    else if(strncmp(line, "is_sheltered", strlen("is_sheltered")) == 0){
+        i = d->isSheltered(r);
+        if(i==0){ xprint("+ok@%d.%s.is_sheltered('none')\r\n", brdAddr, r->name);   }
+        else if(i==1){ xprint("+ok@%d.%s.is_sheltered('left')\r\n", brdAddr, r->name);   }
+        else if(i==2){ xprint("+ok@%d.%s.is_sheltered('right')\r\n", brdAddr, r->name);   }
+        else{ xprint("+ok@%d.%s.is_sheltered('error')\r\n", brdAddr, r->name);   }
     }
 
     else{

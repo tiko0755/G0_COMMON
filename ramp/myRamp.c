@@ -7,6 +7,7 @@
 #include "myRamp.h"
 #include "gpioDecal.h"
 #include "board.h"
+#include "user_log.h"
 
 #define RAMP_TAB_LEN    (202)
 #define RAMP_COMP_BASE  (99)
@@ -44,6 +45,8 @@ static u8 ramp_getDir(rampRsrc_t* r);
 
 static u8 ramp_isShelteredRefL(rampRsrc_t* r);
 static u8 ramp_isShelteredRefR(rampRsrc_t* r);
+static u8 ramp_isSheltered(rampRsrc_t* r);
+
 
 static u16 rampDiv = 0;
 static u16 ramp_computeDiv(void);
@@ -53,6 +56,8 @@ static void ramp_rotate(rampRsrc_t* r, u16 targetSpd);
 static void standaloe_rotate(rampRsrc_t* r, u16 targetSpd);
 static u32 ramp_pulseCycle(rampRsrc_t* r, u16 mul);    // 返回当前mul设置,到达目标速度所需的pulse
 static void ramp_test(rampRsrc_t* r, u16 spd);
+static void ramp_tmrHandle(void* e);
+
 
 s32 rampSetup(
     void* p,
@@ -62,11 +67,13 @@ s32 rampSetup(
     const PIN_T* DIR,
     const PIN_T* REFL,
     const PIN_T* REFR,
-    u16 microStep
+    u16 microStep,
+    appTmrDev_t* tmr
 ){
     rampDev_t* d = (rampDev_t*)p;
     rampRsrc_t* r = &d->rsrc;
     memset(p,0,sizeof(rampDev_t));
+    r->tmr = tmr;
     r->htim = htim;
     r->tCh = tCh;
     r->DIR = DIR;
@@ -101,6 +108,7 @@ s32 rampSetup(
     d->moveTo = ramp_moveTo;
     d->getDir = ramp_getDir;
     d->getRefl = ramp_getRefl;
+    d->isSheltered = ramp_isSheltered;
 
     d->testMul = ramp_testMul;
     d->test = ramp_test;
@@ -111,7 +119,13 @@ s32 rampSetup(
     // do NOT use "HAL_TIM_OnePulse_Start_IT" !!!
     if (HAL_TIM_OnePulse_Start(htim, tCh) != HAL_OK){    r->error |= BIT(0);    }
     
+    tmr->start(&tmr->rsrc, 20, POLLING_REPEAT, ramp_tmrHandle, r);
+    
     return 0;
+}
+
+static void ramp_tmrHandle(void* e){
+    ramp_periodJob((rampRsrc_t*)e, 20);
 }
 
 static void ramp_periodJob(rampRsrc_t* r, u8 tick){
@@ -430,13 +444,24 @@ static void ramp_updateSpdCur(rampRsrc_t* r){
 }
 
 static u8 ramp_isShelteredRefL(rampRsrc_t* r){
-    if(HAL_GPIO_ReadPin(r->REFL->GPIOx, r->REFL->GPIO_Pin) == GPIO_PIN_SET){    return 1;    }
+    if(HAL_GPIO_ReadPin(r->REFL->GPIOx, r->REFL->GPIO_Pin) == GPIO_PIN_RESET){    return 1;    }
     else{    return 0;    }
 }
 
 static u8 ramp_isShelteredRefR(rampRsrc_t* r){
-    if(HAL_GPIO_ReadPin(r->REFR->GPIOx, r->REFR->GPIO_Pin) == GPIO_PIN_SET){    return 1;    }
+    if(HAL_GPIO_ReadPin(r->REFR->GPIOx, r->REFR->GPIO_Pin) == GPIO_PIN_RESET){    return 1;    }
     else{    return 0;    }
+}
+
+static u8 ramp_isSheltered(rampRsrc_t* r){
+    u8 sta = 0;
+    if(ramp_isShelteredRefL(r)){
+        sta |= BIT(0);
+    }
+    if(ramp_isShelteredRefR(r)){
+        sta |= BIT(1);
+    }
+    return sta;
 }
 
 static u8 ramp_getRefl(rampRsrc_t* r){
@@ -522,32 +547,51 @@ static void ramp_isr(rampRsrc_t* r, TIM_HandleTypeDef *htim){
 
 static void ramp_isrRaisingRefL(rampRsrc_t* r, u16 GPIO_Pin){
     if((r->en == 0) || (r->REFL->GPIO_Pin != GPIO_Pin)){    return;    }
-    r->stopImmeditely = 1;
+    if(ramp_isShelteredRefL(r)){
+        r->stopImmeditely = 1;
+    }
+    if(r->squ == 3){
+        if(ramp_isShelteredRefL(r)){
+            standaloe_rotate(r, 1000);
+        }
+        else{
+            r->stopImmeditely = 1;
+            r->posCur = 0;
+            r->isHoming = 0;
+            r->squ = 0;        
+        }
+    }
 }
 
 static void ramp_isrFallingRefL(rampRsrc_t* r, u16 GPIO_Pin){
     if((r->en == 0) || (r->REFL->GPIO_Pin != GPIO_Pin)){    return;    }
+    if(ramp_isShelteredRefL(r)){
+        r->stopImmeditely = 1;
+    }
     // in homing process
     if(r->squ == 3){
-        r->stopImmeditely = 1;
-        r->posCur = 0;
-        r->isHoming = 0;
-        r->squ = 0;
+        if(ramp_isShelteredRefL(r)){
+            standaloe_rotate(r, 1000);
+        }
+        else{
+            r->stopImmeditely = 1;
+            r->posCur = 0;
+            r->isHoming = 0;
+            r->squ = 0;        
+        }
     }
 }
 
 static void ramp_isrRaisingRefR(rampRsrc_t* r, u16 GPIO_Pin){
     if((r->en == 0) || (r->REFR->GPIO_Pin != GPIO_Pin)){    return;    }
-    r->stopImmeditely = 1;
+    if(ramp_isShelteredRefR(r)){
+        r->stopImmeditely = 1;
+    }
 }
 
 static void ramp_isrFallingRefR(rampRsrc_t* r, u16 GPIO_Pin){
     if((r->en == 0) || (r->REFR->GPIO_Pin != GPIO_Pin)){    return;    }
-//    // in homing process
-//    if(r->squ == 3){
-//        r->stopImmeditely = 1;
-//        r->posCur = 0;
-//        r->isHoming = 0;
-//        r->squ = 0;
-//    }
+    if(ramp_isShelteredRefR(r)){
+        r->stopImmeditely = 1;   
+    }
 }

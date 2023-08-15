@@ -19,8 +19,8 @@ typedef void (*cbLogPrintS)(const char*);
  * @brief 
  *****************************************************************************************
  */
-void logX(const char* FORMAT_ORG, ...);
-void logX_raw(const char* FORMAT_ORG, ...);
+void log(const char* FORMAT_ORG, ...);
+void log_raw(const char* FORMAT_ORG, ...);
 void logInitial(cbLogPrintS xPrintS);
 
 #endif

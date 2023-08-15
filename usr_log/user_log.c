@@ -31,7 +31,7 @@
  */
 static cbLogPrintS log_printS = NULL;
 
-void logX(const char* FORMAT_ORG, ...){
+void log(const char* FORMAT_ORG, ...){
     if(log_printS == NULL){
         return;
     }
@@ -49,7 +49,7 @@ void logX(const char* FORMAT_ORG, ...){
     log_printS(buf);  // SHOULD continue to try lower UART api
 }
 
-void logX_raw(const char* FORMAT_ORG, ...){
+void log_raw(const char* FORMAT_ORG, ...){
     if(log_printS == NULL){
         return;
     }

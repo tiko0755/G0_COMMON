@@ -10,6 +10,7 @@
 #define _MY_RAMP_H_
 
 #include "misc.h"
+#include "app_timer.h"
 
 #define RAMP_STATUS_BIT_RUN	0
 #define RAMP_STATUS_BIT_DIR	1
@@ -32,6 +33,8 @@ typedef struct{
 	const PIN_T* DIR;
 	const PIN_T* REFL;
 	const PIN_T* REFR;
+    
+    appTmrDev_t* tmr;
 	u16 mStep;
 
 	u16 mul;
@@ -95,6 +98,7 @@ typedef struct{
 	void (*testMul)(rampRsrc_t* r, u16 delta);
 	void (*test)(rampRsrc_t* r, u16 x);
 
+    u8 (*isSheltered)(rampRsrc_t* r);
 	u8 (*getRefl)(rampRsrc_t* r);
 	u8 (*getDir)(rampRsrc_t* r);
 
@@ -108,7 +112,8 @@ s32 rampSetup(
 	const PIN_T* DIR,
 	const PIN_T* REFL,
 	const PIN_T* REFR,
-	u16 microStep
+	u16 microStep,
+    appTmrDev_t* tmr
 );
 
 #endif /* _MY_RAMP_H_ */
