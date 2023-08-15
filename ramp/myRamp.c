@@ -171,13 +171,13 @@ static u8 ramp_isHoming(rampRsrc_t* r){
 static void ramp_dirL(rampRsrc_t* r){
     // print("turn left\n");
     r->dirCur = 1;
-    if(r->DIR)    writePin(*r->DIR, GPIO_PIN_SET);
+    if(r->DIR)    writePin(r->DIR, GPIO_PIN_SET);
     r->status |= BIT(RAMP_STATUS_BIT_DIR);
 }
 static void ramp_dirR(rampRsrc_t* r){
     // print("turn right\n");
     r->dirCur = 0;
-    if(r->DIR)    writePin(*r->DIR, GPIO_PIN_RESET);
+    if(r->DIR)    writePin(r->DIR, GPIO_PIN_RESET);
     r->status &= (0xff^BIT(RAMP_STATUS_BIT_DIR));
 }
 

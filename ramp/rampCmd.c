@@ -96,6 +96,12 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
         d->rotateR(r,i);
         xprint("+ok@%d.%s.rotater(%d)\r\n", brdAddr, r->name, i);
     }
+    
+    //    .rotatel(spd)
+    else if(sscanf(line, "rotatel %d", &i)==1){
+        d->rotateL(r,i);
+        xprint("+ok@%d.%s.rotatel(%d)\r\n", brdAddr, r->name, i);
+    }
 
     //    .moveto(absPos)
     else if(sscanf(line, "moveto %d %d", &i, &j)==2){
@@ -145,11 +151,7 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
         xprint("+ok@%d.%s.help()\r\n%s", brdAddr, r->name);
     }
 
-    //    .rotatel(spd)
-    else if(sscanf(line, "rotatel %d", &i)==1){
-        d->rotateL(r,i);
-        xprint("+ok@%d.%s.rotatel(%d)\r\n", brdAddr, r->name, i);
-    }
+
 
     //    .homing(spd)
     else if(sscanf(line, "homing %d", &i)==1){

@@ -10,6 +10,7 @@ filename: at24cxx.h
 /*****************************************************************************
  @ typedefs
 ****************************************************************************/
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
 typedef struct{
     u32 capacityBytes;
     u8 pageSizeBytes;
@@ -26,6 +27,15 @@ typedef struct{
     u8 writeCycTime;
 }AT24CXX_Rsrc_T;
 
+typedef struct{
+    AT24CXX_Rsrc_T rsrc;
+    //basic
+    s8 (*Write)(AT24CXX_Rsrc_T* pRsrc, u16 addr, const u8 *pDat, u16 nBytes);
+    s8 (*Read)(AT24CXX_Rsrc_T* pRsrc, u16 addr, u8 *pDat, u16 nBytes);    
+}AT24CXX_Dev_T;
+
+#pragma pack(pop)           //recover align bytes from 4 bytes
+
 extern const AT24CXX_CHIP HT2201;
 extern const AT24CXX_CHIP AT24C02;
 extern const AT24CXX_CHIP AT24C04;
@@ -37,17 +47,10 @@ extern const AT24CXX_CHIP AT24C128;
 extern const AT24CXX_CHIP AT24C256;
 extern const AT24CXX_CHIP AT24C512;
 
-typedef struct{
-    AT24CXX_Rsrc_T rsrc;
-    //basic
-    s8 (*Write)(AT24CXX_Rsrc_T* pRsrc, u16 addr, const u8 *pDat, u16 nBytes);
-    s8 (*Read)(AT24CXX_Rsrc_T* pRsrc, u16 addr, u8 *pDat, u16 nBytes);    
-}AT24CXX_Dev_T;
-
 void AT24CXX_Setup(
     AT24CXX_Dev_T *pDev, 
-    const PIN_T scl, 
-    const PIN_T sda, 
+    const PIN_T* SCL, 
+    const PIN_T* SDA,
     const AT24CXX_CHIP chip,
     const u8 cfgAddr    //a0..A2, 0..7
 );

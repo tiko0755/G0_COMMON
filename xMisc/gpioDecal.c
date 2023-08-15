@@ -16,9 +16,9 @@
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_PP_NOPULL_LOW    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_PP_NOPULL_LOW    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -31,9 +31,9 @@ void as_OUTPUT_PP_NOPULL_LOW    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_PP_NOPULL_HIGH    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_PP_NOPULL_HIGH    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -46,9 +46,9 @@ void as_OUTPUT_PP_NOPULL_HIGH    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_PP_PULLUP_LOW    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_PP_PULLUP_LOW    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -61,9 +61,9 @@ void as_OUTPUT_PP_PULLUP_LOW    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_PP_PULLUP_HIGH    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_PP_PULLUP_HIGH    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -76,9 +76,9 @@ void as_OUTPUT_PP_PULLUP_HIGH    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_PP_PULLDWN_LOW    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_PP_PULLDWN_LOW    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -91,9 +91,9 @@ void as_OUTPUT_PP_PULLDWN_LOW    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_PP_PULLDWN_HIGH(PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_PP_PULLDWN_HIGH(const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
@@ -106,9 +106,9 @@ void as_OUTPUT_PP_PULLDWN_HIGH(PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_OD_NOPULL_LOW    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_OD_NOPULL_LOW    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
@@ -121,9 +121,9 @@ void as_OUTPUT_OD_NOPULL_LOW    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_OD_NOPULL_HIGH    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_OD_NOPULL_HIGH    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
@@ -136,9 +136,9 @@ void as_OUTPUT_OD_NOPULL_HIGH    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_OD_PULLUP_LOW    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_OD_PULLUP_LOW    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
@@ -151,9 +151,9 @@ void as_OUTPUT_OD_PULLUP_LOW    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_OUTPUT_OD_PULLUP_HIGH    (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_OUTPUT_OD_PULLUP_HIGH    (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
@@ -166,9 +166,9 @@ void as_OUTPUT_OD_PULLUP_HIGH    (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_INPUT_NOPULL        (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_INPUT_NOPULL        (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -179,9 +179,9 @@ void as_INPUT_NOPULL        (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_INPUT_PULLUP        (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_INPUT_PULLUP        (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
         
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
@@ -193,9 +193,9 @@ void as_INPUT_PULLUP        (PIN_T PIN){
 /*----------------------------------------------------------------------------*/
 /* Configure GPIO                                                             */
 /*----------------------------------------------------------------------------*/
-void as_INPUT_PULLDWN        (PIN_T PIN){
-    GPIO_TypeDef* GPIOx = PIN.GPIOx;
-    uint16_t GPIO_Pin = PIN.GPIO_Pin;
+void as_INPUT_PULLDWN        (const PIN_T* PIN){
+    GPIO_TypeDef* GPIOx = PIN->GPIOx;
+    uint16_t GPIO_Pin = PIN->GPIO_Pin;
   GPIO_InitTypeDef GPIO_InitStruct;
     GPIO_InitStruct.Pin = GPIO_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
@@ -203,20 +203,20 @@ void as_INPUT_PULLDWN        (PIN_T PIN){
     HAL_GPIO_Init(GPIOx, &GPIO_InitStruct);
 }
 
-void writePin(PIN_T x, GPIO_PinState status){
-    HAL_GPIO_WritePin(x.GPIOx, x.GPIO_Pin, status);
+void writePin(const PIN_T* x, GPIO_PinState status){
+    HAL_GPIO_WritePin(x->GPIOx, x->GPIO_Pin, status);
 }
-void togglePin(PIN_T x){
-    HAL_GPIO_TogglePin(x.GPIOx, x.GPIO_Pin);
+void togglePin(const PIN_T* x){
+    HAL_GPIO_TogglePin(x->GPIOx, x->GPIO_Pin);
 }
-GPIO_PinState readPin(PIN_T x){
-    return (HAL_GPIO_ReadPin(x.GPIOx, x.GPIO_Pin));
+GPIO_PinState readPin(const PIN_T* x){
+    return (HAL_GPIO_ReadPin(x->GPIOx, x->GPIO_Pin));
 }
-void writePinX(PIN_T x0, GPIO_PinState status0, ...){
+void writePinX(const PIN_T* x0, GPIO_PinState status0, ...){
 }
-void togglePinX(PIN_T x0, ...){
+void togglePinX(const PIN_T* x0, ...){
 }
-u32 readPinX(PIN_T x0, ...){
+u32 readPinX(const PIN_T* x0, ...){
     return 0;
 }
 

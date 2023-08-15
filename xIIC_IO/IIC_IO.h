@@ -9,10 +9,11 @@ filename: IIC_IO.h
 /*****************************************************************************
  @ typedefs
 ****************************************************************************/
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
 typedef struct{
     /* config    */
-    PIN_T SCL;
-    PIN_T SDA;
+    const PIN_T* SCL;
+    const PIN_T* SDA;
 }IIC_IO_Rsrc_T;
 
 typedef struct{
@@ -23,7 +24,8 @@ typedef struct{
     s8 (*Write16)    (IIC_IO_Rsrc_T* pRsrc, u8 slaveWrtAddr, u16 regAddr, const u8* pDat, u8 datLen);
     s8 (*Read16)    (IIC_IO_Rsrc_T* pRsrc, u8 slaveWrtAddr, u16 regAddr, u8* pDat, u8 datLen);    
 }IIC_IO_Dev_T;
+#pragma pack(pop)           //recover align bytes from 4 bytes
 
-void IIC_IO_Setup(IIC_IO_Dev_T *pDev, const PIN_T scl, const PIN_T sda);
+void IIC_IO_Setup(IIC_IO_Dev_T *pDev, const PIN_T* SCL, const PIN_T* SDA);
 
 #endif

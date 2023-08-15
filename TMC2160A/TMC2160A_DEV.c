@@ -56,6 +56,10 @@ void TMC2160A_dev_Setup(
     HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_SET);
     tmc2160_init(&r->obj, ch, &r->conf, tmc2160_defaultRegisterResetState);
     tmc2160_Enable(r);
+    
+    
+    
+    
 }
 
 static void tmc2160_Enable(TMC2160A_rsrc_t* r){

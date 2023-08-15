@@ -33,12 +33,12 @@ static s8 writePage(AT24CXX_Rsrc_T* pRsrc, u16 regAddr, const u8 *pBuf, u16 nByt
 **********************************************************/
 void AT24CXX_Setup(
     AT24CXX_Dev_T *pDev,
-    const PIN_T scl, 
-    const PIN_T sda, 
+    const PIN_T* SCL, 
+    const PIN_T* SDA, 
     const AT24CXX_CHIP chip,
     const u8 cfgAddr    //a0..a2, 0..7
 ){
-    IIC_IO_Setup(&pDev->rsrc.DevIIC, scl, sda);
+    IIC_IO_Setup(&pDev->rsrc.DevIIC, SCL, SDA);
     AT24CXX_Setup1(pDev, &pDev->rsrc.DevIIC, chip, cfgAddr);
 }
 

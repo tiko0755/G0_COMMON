@@ -21,6 +21,7 @@
 extern const char INPUT_HELP[];
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
+u8 inputCmdU8(void *dev, u8* CMD, u8 len, void (*xprint)(const char* FORMAT_ORG, ...));
 u8 inputCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_ORG, ...));
 
 #endif /* _INPUT_CMD_H */

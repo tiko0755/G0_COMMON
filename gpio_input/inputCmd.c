@@ -42,6 +42,10 @@ const char INPUT_HELP[] = {
 * Output         : None
 * Return         : None 
 *******************************************************************************/
+u8 inputCmdU8(void *dev, u8* CMD, u8 len, void (*xprint)(const char* FORMAT_ORG, ...)){
+    return(inputCmd(dev,(char*)CMD,g_boardAddr,xprint));
+}
+
 u8 inputCmd(void *p, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_ORG, ...)){
     s32 i,j,ii;
     const char* line;
