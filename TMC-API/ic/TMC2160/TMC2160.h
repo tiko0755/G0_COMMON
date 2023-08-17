@@ -29,9 +29,16 @@ typedef struct
 typedef void (*tmc2160_callback)(TMC2160TypeDef*, ConfigState);
 
 // Default Register values
+//#define R10 0x00070A03  // IHOLD_IRUN
+//#define R6C 0x10410153  // CHOPCONF
+//#define R70 0xC40C001E  // PWMCONF
+
 #define R10 0x00070A03  // IHOLD_IRUN
-#define R6C 0x10410153  // CHOPCONF
+#define R6C 0x02410153  // CHOPCONF |64mcroStep
 #define R70 0xC40C001E  // PWMCONF
+#define R11 0x0000000A  // 
+#define R00 0x00000004  // 
+#define R13 0x000001F4  // 
 
 // Register access permissions:
 // 0x00: none (reserved)
@@ -72,11 +79,12 @@ static const uint8_t tmc2160_defaultRegisterAccess[TMC2160_REGISTER_COUNT] =
 	0x02, 0x01, 0x01, 0x01, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____, ____  // 0x70 - 0x7F
 };
 
+
 static const int32_t tmc2160_defaultRegisterResetState[TMC2160_REGISTER_COUNT] =
 {
 //	0,   1,   2,   3,   4,   5,   6,   7,   8,   9,   A,   B,   C,   D,   E,   F
-	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 0x00 - 0x0F
-	R10, 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 0x10 - 0x1F
+	R00, 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 0x00 - 0x0F
+	R10, R11, 0,   R13, 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 0x10 - 0x1F
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 0x20 - 0x2F
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 0x30 - 0x3F
 	0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 0x40 - 0x4F

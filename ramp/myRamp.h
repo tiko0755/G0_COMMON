@@ -44,7 +44,6 @@ typedef struct{
 	u8 comp[4];
 	u8 runMod, status;
 
-	u8 dirCur;
 	u8 dirNxt;
 
 	u16 spdCur;		// current speed

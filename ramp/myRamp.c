@@ -7,7 +7,7 @@
 #include "myRamp.h"
 #include "gpioDecal.h"
 #include "board.h"
-#include "user_log.h"
+//#include "user_log.h"
 
 #define RAMP_TAB_LEN    (202)
 #define RAMP_COMP_BASE  (99)
@@ -47,7 +47,6 @@ static u8 ramp_isShelteredRefL(rampRsrc_t* r);
 static u8 ramp_isShelteredRefR(rampRsrc_t* r);
 static u8 ramp_isSheltered(rampRsrc_t* r);
 
-
 static u16 rampDiv = 0;
 static u16 ramp_computeDiv(void);
 static u16 ramp_computeMul(u16 delta, u8* pComp);
@@ -58,6 +57,7 @@ static u32 ramp_pulseCycle(rampRsrc_t* r, u16 mul);    // 返回当前mul设置,
 static void ramp_test(rampRsrc_t* r, u16 spd);
 static void ramp_tmrHandle(void* e);
 
+#define DIR_LEFT_LEVEL    (GPIO_PIN_RESET)
 
 s32 rampSetup(
     void* p,
@@ -113,7 +113,6 @@ s32 rampSetup(
     d->testMul = ramp_testMul;
     d->test = ramp_test;
 
-    r->status |= BIT(RAMP_STATUS_BIT_DIR);
     ramp_dirR(r);
 
     // do NOT use "HAL_TIM_OnePulse_Start_IT" !!!
@@ -132,7 +131,7 @@ static void ramp_periodJob(rampRsrc_t* r, u8 tick){
     r->tick += tick;
     if(r->tick > 500){
         r->tick = 0;
-        log("<%s squ:%d >", __func__, r->squ);
+//        log("<%s squ:%d >", __func__, r->squ);
     }
     if(r->en == 0)    { return;    }
     switch(r->squ){
@@ -143,7 +142,7 @@ static void ramp_periodJob(rampRsrc_t* r, u8 tick){
             if(r->dirNxt == RAMP_DIR_RIGHT){    ramp_dirR(r);    }
             else{    ramp_dirL(r);        }
             ramp_rotate(r, r->spdTgtNxt);
-            log("<%s squ clear >", __func__);
+//            log("<%s squ clear >", __func__);
             r->squ = 0;
             break;
 
@@ -189,20 +188,25 @@ static u8 ramp_isHoming(rampRsrc_t* r){
 }
 
 static void ramp_dirL(rampRsrc_t* r){
-    log("<%s 0x%08x>", __func__, r->DIR);
     // print("turn left\n");
-    r->dirCur = 1;
-    if(r->DIR)    writePin(r->DIR, GPIO_PIN_RESET);
-    r->status |= BIT(RAMP_STATUS_BIT_DIR);
-    log("</%s sta:0x%02x>", __func__,r->status);
-}
-static void ramp_dirR(rampRsrc_t* r){
-    log("<%s 0x%08x>", __func__, r->DIR);
-    // print("turn right\n");
-    r->dirCur = 0;
-    if(r->DIR)    writePin(r->DIR, GPIO_PIN_SET);
+    if(DIR_LEFT_LEVEL){
+        if(r->DIR)    writePin(r->DIR, GPIO_PIN_SET);
+    }
+    else{
+        if(r->DIR)    writePin(r->DIR, GPIO_PIN_RESET);
+    }
     r->status &= (0xff^BIT(RAMP_STATUS_BIT_DIR));
-    log("</%s sta:0x%02x>", __func__,r->status);
+}
+
+static void ramp_dirR(rampRsrc_t* r){
+    // print("turn right\n");
+    if(DIR_LEFT_LEVEL){
+        if(r->DIR)    writePin(r->DIR, GPIO_PIN_RESET);
+    }
+    else{
+        if(r->DIR)    writePin(r->DIR, GPIO_PIN_SET);
+    }
+    r->status |= BIT(RAMP_STATUS_BIT_DIR);
 }
 
 static u16 ramp_computeDiv(void){
@@ -281,9 +285,7 @@ static void ramp_rotate(rampRsrc_t* r, u16 targetSpd){
     // by slow speed, do not use ramp
     if((r->spdCur <= r->spdMin) && ((r->spdTgt <= r->spdMin))){
         r->spdCur = r->spdMin;
-        print("<%s sta:%d>", __func__,HAL_TIM_Base_GetState(r->htim));
         if( HAL_TIM_Base_GetState(r->htim) == HAL_TIM_STATE_READY){
-            print("<%s 2>", __func__);
             x = 0xffff - r->spdMin;
             __HAL_TIM_SET_AUTORELOAD(r->htim, x);
             __HAL_TIM_SET_COMPARE(r->htim, r->tCh, x/2);
@@ -336,40 +338,38 @@ static u32 ramp_pulseCycle(rampRsrc_t* r, u16 mul){
 }
 
 static s32 ramp_rotateL(rampRsrc_t* r, u16 targetSpd){
-    log("<%s status:0x%02x squ:%d>", __func__, r->status, r->squ);
+//    log("<%s status:0x%02x squ:%d>", __func__, r->status, r->squ);
     r->runMod = RAMP_RUN_MOD_SPD;    // SPEED MODE
     r->posReloadEn = 0;
-    if((r->status & BIT(RAMP_STATUS_BIT_DIR)) == 0){
+    
+    if(HAL_GPIO_ReadPin(r->DIR->GPIOx, r->DIR->GPIO_Pin) == DIR_LEFT_LEVEL){
         ramp_rotate(r,targetSpd);
     }
     else{
-        // current motion is rotate left, stop first
-        log("<%s constray>", __func__);
         ramp_rotate(r, 0);
         r->spdTgtNxt = targetSpd;
         r->dirNxt = RAMP_DIR_LEFT;
         r->squ = 1;
     }
-    log("</%s squ:%d>", __func__, r->squ);
+//    log("</%s squ:%d>", __func__, r->squ);
     return 0;
 }
 
 static s32 ramp_rotateR(rampRsrc_t* r, u16 targetSpd){
-    log("<%s status:0x%02x squ:%d>", __func__, r->status, r->squ);
+//    log("<%s status:0x%02x squ:%d>", __func__, r->status, r->squ);
     r->runMod = RAMP_RUN_MOD_SPD;    // SPEED MODE
     r->posReloadEn = 0;
-    if((r->status & BIT(RAMP_STATUS_BIT_DIR)) != 0){
+    
+    if(HAL_GPIO_ReadPin(r->DIR->GPIOx, r->DIR->GPIO_Pin) != DIR_LEFT_LEVEL){
         ramp_rotate(r,targetSpd);
     }
     else{
-        // current motion is rotate left, stop first
-        log("<%s constray>", __func__);
         ramp_rotate(r, 0);
         r->spdTgtNxt = targetSpd;
         r->dirNxt = RAMP_DIR_RIGHT;
         r->squ = 1;
     }
-    log("</%s squ:%d>", __func__, r->squ);
+//    log("</%s squ:%d>", __func__, r->squ);
     return 0;
 }
 
@@ -384,6 +384,7 @@ static s32 ramp_moveBy(rampRsrc_t* r, s32 refPos){
 }
 
 static s32 ramp_moveBySpd(rampRsrc_t* r, s32 refPos, u16 spd){
+//    log("<%s >", __func__);
     u16 xMul;
     u16 xSpd;
     u32 posAbs = abs(refPos);
@@ -418,7 +419,8 @@ static s32 ramp_moveBySpd(rampRsrc_t* r, s32 refPos, u16 spd){
 
     r->posReloadEn=1;
     ramp_rotate(r,r->spdMax);        // rotate with ramp, also set accLock=1 to make ramp
-
+    
+//    log("</%s spdMax:%d >", __func__, r->spdMax);
     return r->spdMax;
 }
 
@@ -432,7 +434,6 @@ static void ramp_stopSoft(rampRsrc_t* r){
 }
 
 static void ramp_stop(rampRsrc_t* r){
-    log("<%s >", __func__);
     r->squ = 0;
     r->isHoming = 0;
     r->stopImmeditely = 1;
@@ -486,14 +487,13 @@ static u8 ramp_getRefl(rampRsrc_t* r){
 }
 
 static u8 ramp_getDir(rampRsrc_t* r){
-    return(r->dirCur);
+    return(readPin(r->DIR));
 }
 
 static void ramp_test(rampRsrc_t* r, u16 spd){
     u32 x;
     x = ramp_computeMul(spd, r->comp);
     r->pulsePerRampCycle = ramp_pulseCycle(r, x);
-    print("%d\t%d\t%d\n", spd, x, r->pulsePerRampCycle);
 }
 
 static void ramp_isr(rampRsrc_t* r, TIM_HandleTypeDef *htim){
@@ -575,7 +575,6 @@ static void ramp_isrRaisingRefL(rampRsrc_t* r, u16 GPIO_Pin){
             r->stopImmeditely = 1;
             r->posCur = 0;
             r->isHoming = 0;
-            log("<%s >", __func__);
             r->squ = 0;        
         }
     }
@@ -595,7 +594,6 @@ static void ramp_isrFallingRefL(rampRsrc_t* r, u16 GPIO_Pin){
             r->stopImmeditely = 1;
             r->posCur = 0;
             r->isHoming = 0;
-            log("<%s >", __func__);
             r->squ = 0;        
         }
     }
