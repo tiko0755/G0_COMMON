@@ -26,6 +26,8 @@
 #define RAMP_RUN_MOD_SPD	1
 #define RAMP_RUN_MOD_POS	2
 
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
+
 typedef struct{
 	char name[DEV_NAME_LEN];
 	TIM_HandleTypeDef *htim;
@@ -71,6 +73,7 @@ typedef struct{
 	u8 en;
 	u8 stopImmeditely;
 	u8 error;
+    u16 tick;
 }rampRsrc_t;
 
 typedef struct{
@@ -103,6 +106,7 @@ typedef struct{
 	u8 (*getDir)(rampRsrc_t* r);
 
 }rampDev_t;
+#pragma pack(pop)           //recover align bytes from 4 bytes
 
 s32 rampSetup(
 	void*,

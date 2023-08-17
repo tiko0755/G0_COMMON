@@ -208,6 +208,16 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
         else{ xprint("+ok@%d.%s.is_sheltered('error')\r\n", brdAddr, r->name);   }
     }
 
+    else if(strncmp(line, "turn_left", strlen("turn_left")) == 0){
+        writePin(d->rsrc.DIR, GPIO_PIN_RESET);
+        xprint("+ok@%d.%s.turn_left()\r\n", brdAddr, r->name);
+    }
+    
+    else if(strncmp(line, "turn_right", strlen("turn_right")) == 0){
+        writePin(d->rsrc.DIR, GPIO_PIN_SET);
+        xprint("+ok@%d.%s.turn_right()\r\n", brdAddr, r->name);
+    }
+    
     else{
         xprint("+unknown@%s", CMD);
     }

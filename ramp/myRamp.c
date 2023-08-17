@@ -119,41 +119,47 @@ s32 rampSetup(
     // do NOT use "HAL_TIM_OnePulse_Start_IT" !!!
     if (HAL_TIM_OnePulse_Start(htim, tCh) != HAL_OK){    r->error |= BIT(0);    }
     
-    tmr->start(&tmr->rsrc, 20, POLLING_REPEAT, ramp_tmrHandle, r);
+    tmr->start(&tmr->rsrc, 10, POLLING_REPEAT, ramp_tmrHandle, r);
     
     return 0;
 }
 
 static void ramp_tmrHandle(void* e){
-    ramp_periodJob((rampRsrc_t*)e, 20);
+    ramp_periodJob((rampRsrc_t*)e, 10);
 }
 
 static void ramp_periodJob(rampRsrc_t* r, u8 tick){
+    r->tick += tick;
+    if(r->tick > 500){
+        r->tick = 0;
+        log("<%s squ:%d >", __func__, r->squ);
+    }
     if(r->en == 0)    { return;    }
     switch(r->squ){
-    case 0:
-        break;
-    case 1:        // change contrary direction
-        if(r->spdCur > 0){    break;    }
-        if(r->dirNxt == RAMP_DIR_RIGHT){    ramp_dirR(r);    }
-        else{    ramp_dirL(r);        }
-        ramp_rotate(r, r->spdTgtNxt);
-        r->squ = 0;
-        break;
+        case 0:
+            break;
+        case 1:        // change contrary direction
+            if(r->spdCur > 0){    break;    }
+            if(r->dirNxt == RAMP_DIR_RIGHT){    ramp_dirR(r);    }
+            else{    ramp_dirL(r);        }
+            ramp_rotate(r, r->spdTgtNxt);
+            log("<%s squ clear >", __func__);
+            r->squ = 0;
+            break;
 
-    case 2:     // homing, wait stop
-        if(r->spdCur > 0){    break;    }
-        // rotate right by a very slow speed
-        ramp_dirR(r);
-        standaloe_rotate(r, 1000);
-        r->squ ++;
-        break;
+        case 2:     // homing, wait stop
+            if(r->spdCur > 0){    break;    }
+            // rotate right by a very slow speed
+            ramp_dirR(r);
+            standaloe_rotate(r, 1000);
+            r->squ ++;
+            break;
 
-    case 3:        // will reset squ in exti raising edge
-        break;
+        case 3:        // will reset squ in exti raising edge
+            break;
 
-    case 10:    // execute
-        break;
+        case 10:    // execute
+            break;
     }
 }
 
@@ -183,16 +189,20 @@ static u8 ramp_isHoming(rampRsrc_t* r){
 }
 
 static void ramp_dirL(rampRsrc_t* r){
+    log("<%s 0x%08x>", __func__, r->DIR);
     // print("turn left\n");
     r->dirCur = 1;
-    if(r->DIR)    writePin(r->DIR, GPIO_PIN_SET);
+    if(r->DIR)    writePin(r->DIR, GPIO_PIN_RESET);
     r->status |= BIT(RAMP_STATUS_BIT_DIR);
+    log("</%s sta:0x%02x>", __func__,r->status);
 }
 static void ramp_dirR(rampRsrc_t* r){
+    log("<%s 0x%08x>", __func__, r->DIR);
     // print("turn right\n");
     r->dirCur = 0;
-    if(r->DIR)    writePin(r->DIR, GPIO_PIN_RESET);
+    if(r->DIR)    writePin(r->DIR, GPIO_PIN_SET);
     r->status &= (0xff^BIT(RAMP_STATUS_BIT_DIR));
+    log("</%s sta:0x%02x>", __func__,r->status);
 }
 
 static u16 ramp_computeDiv(void){
@@ -326,6 +336,7 @@ static u32 ramp_pulseCycle(rampRsrc_t* r, u16 mul){
 }
 
 static s32 ramp_rotateL(rampRsrc_t* r, u16 targetSpd){
+    log("<%s status:0x%02x squ:%d>", __func__, r->status, r->squ);
     r->runMod = RAMP_RUN_MOD_SPD;    // SPEED MODE
     r->posReloadEn = 0;
     if((r->status & BIT(RAMP_STATUS_BIT_DIR)) == 0){
@@ -333,15 +344,18 @@ static s32 ramp_rotateL(rampRsrc_t* r, u16 targetSpd){
     }
     else{
         // current motion is rotate left, stop first
+        log("<%s constray>", __func__);
         ramp_rotate(r, 0);
         r->spdTgtNxt = targetSpd;
         r->dirNxt = RAMP_DIR_LEFT;
         r->squ = 1;
     }
+    log("</%s squ:%d>", __func__, r->squ);
     return 0;
 }
 
 static s32 ramp_rotateR(rampRsrc_t* r, u16 targetSpd){
+    log("<%s status:0x%02x squ:%d>", __func__, r->status, r->squ);
     r->runMod = RAMP_RUN_MOD_SPD;    // SPEED MODE
     r->posReloadEn = 0;
     if((r->status & BIT(RAMP_STATUS_BIT_DIR)) != 0){
@@ -349,11 +363,13 @@ static s32 ramp_rotateR(rampRsrc_t* r, u16 targetSpd){
     }
     else{
         // current motion is rotate left, stop first
+        log("<%s constray>", __func__);
         ramp_rotate(r, 0);
         r->spdTgtNxt = targetSpd;
         r->dirNxt = RAMP_DIR_RIGHT;
         r->squ = 1;
     }
+    log("</%s squ:%d>", __func__, r->squ);
     return 0;
 }
 
@@ -416,6 +432,7 @@ static void ramp_stopSoft(rampRsrc_t* r){
 }
 
 static void ramp_stop(rampRsrc_t* r){
+    log("<%s >", __func__);
     r->squ = 0;
     r->isHoming = 0;
     r->stopImmeditely = 1;
@@ -558,6 +575,7 @@ static void ramp_isrRaisingRefL(rampRsrc_t* r, u16 GPIO_Pin){
             r->stopImmeditely = 1;
             r->posCur = 0;
             r->isHoming = 0;
+            log("<%s >", __func__);
             r->squ = 0;        
         }
     }
@@ -577,6 +595,7 @@ static void ramp_isrFallingRefL(rampRsrc_t* r, u16 GPIO_Pin){
             r->stopImmeditely = 1;
             r->posCur = 0;
             r->isHoming = 0;
+            log("<%s >", __func__);
             r->squ = 0;        
         }
     }
