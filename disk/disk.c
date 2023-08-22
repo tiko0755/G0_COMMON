@@ -1,6 +1,6 @@
 #include "disk.h"
 #include <string.h>
-#include "board.h"
+#include "user_log.h"
 
 u8 boardAddr = 0;
 u8 baudHost = 4;		// BAUD[4]=115200

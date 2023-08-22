@@ -21,9 +21,8 @@
 /* Private define ------------------------------------------------------------*/
 #define UART_FRAM_HEAD   (0xed98ba)
 #define UART_FRAM_END    (0x89abcd)
-#define UART_INTERVAL 	(1)
+#define UART_INTERVAL     (1)
 /* Private macro -------------------------------------------------------------*/
-
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 static void uartPolling(void* e);
@@ -53,7 +52,7 @@ static s32 uartIsTxRBuffEmpty(UartRsrc_t *r);
 void setupUartDev(
     UartDev_t *pDev, 
     UART_HandleTypeDef* huart,
-		appTmrDev_t* tObj,
+        appTmrDev_t* tObj,
     u8* txPool, u16 txPoolLen,
     u8* rxPool,    u16    rxPoolLen,
     u8* rxDoubleBuff,    u16 rxBufLen, u16 rxPollingTim
@@ -123,14 +122,14 @@ static u8 uartTestRestartRecv(UartRsrc_t *r){
 }
 
 static void uartPolling(void* e){
-	UartRsrc_t *r = (UartRsrc_t*)e;
-	uartTxPolling(r);
-	r->tick += UART_INTERVAL;
-	if(r->tick < r->rxPollingTim){
-		return;
-	}
-	r->tick = 0;
-	uartRxMonitor(r);
+    UartRsrc_t *r = (UartRsrc_t*)e;
+    uartTxPolling(r);
+    r->tick += UART_INTERVAL;
+    if(r->tick < r->rxPollingTim){
+        return;
+    }
+    r->tick = 0;
+    uartRxMonitor(r);
 }
 
 static u16 uartTxPolling(UartRsrc_t *r){
