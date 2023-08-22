@@ -15,6 +15,9 @@
 #include "misc.h"
 #include "usr_typedef.h"
 
+// total storage size(bytes)
+#define TOTAL_SZ_BYTES          (4*1024)
+
 extern u8 boardAddr;
 extern u8 baudHost;
 extern u8 baud485;
