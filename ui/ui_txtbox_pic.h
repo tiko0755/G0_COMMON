@@ -18,6 +18,7 @@ typedef struct{
     EventCB_t cbTab[UI_MAX_EVENT];
     u16 pic;
     char* txt;
+    u8 txtSz;
 }tboxPic_rsrc_t;
 
 typedef struct{

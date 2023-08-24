@@ -17,6 +17,7 @@ typedef struct{
     void (*uiPrint)(const char* FORMAT_ORG, ...);
     EventCB_t cbTab[UI_MAX_EVENT];
     char* txt;
+    u8 txtSz;
 }tbox_rsrc_t;
 
 typedef struct{

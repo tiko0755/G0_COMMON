@@ -96,7 +96,7 @@ static u8 uiTxtboxPic_cmd(tboxPic_rsrc_t* rsrc, const char* MSG){
                     if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(2, j, str);    }
                 }
             }
-            memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
+            memset(rsrc->txt,0,rsrc->txtSz);
             strcpy(rsrc->txt, str);            
         }
         return 1;
@@ -117,7 +117,7 @@ static s8 uiTxtboxPic_set(tboxPic_rsrc_t* rsrc, const char* attr, const char* FO
         if(strncmp(attr,"txt",strlen("txt")) == 0){
             if(rsrc->txt){
                 rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, buf);
-                memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
+                memset(rsrc->txt,0,rsrc->txtSz);
                 strcpy(rsrc->txt, buf);            
             }
         }

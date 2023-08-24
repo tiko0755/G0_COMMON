@@ -37,9 +37,12 @@ s32 usrWrite(u16 addr, const u8 *pDat, u16 nBytes);
 s32 usrRead(u16 addr, u8 *pDat, u16 nBytes);
 s32 usrGetRomSize(void);
 s32 usrGetRomFreeSize(void);
+<<<<<<< HEAD
 
 void dist_setup(IO_Read rdMethod, IO_Write wrtMethod);
 
+=======
+>>>>>>> 8e78bad99e5fb8e3566d992f419c8b0d4d480ca2
 
 #ifdef __cplusplus
 }

@@ -29,9 +29,12 @@ typedef void (*Proc)(CB resolve, CB err);
 typedef int32_t (*IO_Write)(uint16_t addr, const uint8_t *pDat, uint16_t nBytes);
 typedef int32_t (*IO_Read)(uint16_t addr, uint8_t *pDat, uint16_t nBytes);
 
+<<<<<<< HEAD
 typedef int32_t (*IO_WriteAsyn)(uint16_t addr, const uint8_t *pDat, uint16_t nBytes, CB2 cmplt);
 typedef int32_t (*IO_ReadAsyn)(uint16_t addr, uint8_t *pDat, uint16_t nBytes, CB2 cmplt);
 
+=======
+>>>>>>> 8e78bad99e5fb8e3566d992f419c8b0d4d480ca2
 
 //#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
 //// put user structure here

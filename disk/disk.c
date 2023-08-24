@@ -3,7 +3,7 @@
 #include "user_log.h"
 
 u8 boardAddr = 0;
-u8 baudHost = 4;		// BAUD[4]=115200
+u8 baudHost = 4;        // BAUD[4]=115200
 u8 baud485 = 4;
 u8 boardMux = 0;
 
@@ -21,6 +21,7 @@ CONF_T conf = {0};
 #define EEPROM_BASE_NET            (EEPROM_BASE_REG + EEPROM_SIZE_NET)
 
 // storage device
+<<<<<<< HEAD
 #define ROM_SZ_BYTES_REG     (32*4)
 #define ROM_SZ_BYTES_CFG     (128)
 #define ROM_SZ_BYTES_USR     (TOTAL_SZ_BYTES - ROM_SZ_BYTES_REG - ROM_SZ_BYTES_CFG)
@@ -88,26 +89,60 @@ s32 configRead(void){
 	for(i=0,sum=0;i<14;i++){	sum += buff[i];	}
 	checkcode = buff[15];	checkcode <<= 8;
 	checkcode |= buff[14];
+=======
+#define EEPROM_SZ_BYTES_REG     (32*4)
+#define EEPROM_SZ_BYTES_CFG     (128)
+#define EEPROM_SZ_BYTES_USR     (TOTAL_SZ_BYTES - EEPROM_SZ_BYTES_REG - EEPROM_SZ_BYTES_CFG)
+// define app eeprom base address
+#define EEPROM_BASE_USER        (0)
+#define EEPROM_BASE_REG            (EEPROM_BASE_USER + EEPROM_SIZE_USR)
+#define EEPROM_BASE_CFG            (EEPROM_BASE_REG + EEPROM_SIZE_REG)
 
-	if(sum == checkcode){
-		baudHost = buff[0];
-		baud485 = buff[1];
-		if(baudHost >= 7)	 baudHost = 2;	// 2@115200
-		if(baud485 >= 7)	 baud485 = 2;	// 2@115200
-		boardAddr = buff[3];	boardAddr <<= 8;
-		boardAddr |= buff[2];
-		boardMux = buff[4];
-	}
-	else{
-		baudHost = 2;	// 2@115200
-		baud485 = 2;	// 2@115200
-		boardAddr = 0;
-		boardMux = 0;
-	}
-
-	return 0;
+s8 configWrite(void){
+    u8 buff[16]={0};
+    u16 sum = 0,i;
+    buff[0] = baudHost;
+    buff[1] = baud485;
+    buff[2] = boardAddr;
+    buff[3] = boardAddr>>8;
+    buff[4] = boardMux;
+    for(i=0;i<14;i++){    sum += buff[i];    }
+    buff[14] = sum;
+    buff[15] = sum>>8;
+    ioWrite(EEPROM_BASE_CFG, buff, 16);
+    return 0;
 }
 
+s8 configRead(void){
+    u8 buff[16] = {0};
+    u16 sum,checkcode,i;
+
+    ioWrite(EEPROM_BASE_CFG, buff, 16);
+    for(i=0,sum=0;i<14;i++){    sum += buff[i];    }
+    checkcode = buff[15];    checkcode <<= 8;
+    checkcode |= buff[14];
+>>>>>>> 8e78bad99e5fb8e3566d992f419c8b0d4d480ca2
+
+    if(sum == checkcode){
+        baudHost = buff[0];
+        baud485 = buff[1];
+        if(baudHost >= 7)     baudHost = 2;    // 2@115200
+        if(baud485 >= 7)     baud485 = 2;    // 2@115200
+        boardAddr = buff[3];    boardAddr <<= 8;
+        boardAddr |= buff[2];
+        boardMux = buff[4];
+    }
+    else{
+        baudHost = 2;    // 2@115200
+        baud485 = 2;    // 2@115200
+        boardAddr = 0;
+        boardMux = 0;
+    }
+
+    return 0;
+}
+
+<<<<<<< HEAD
 s32 ioReadReg(u16 addr, s32 *val){
 	if(addr >= (ROM_SZ_BYTES_REG/4)){	return 	ROM_SZ_BYTES_REG/4;	}
 	disk_ioRead(ROM_BASE_REG + addr*4, (u8*)val, 4);
@@ -134,6 +169,34 @@ s32 usrRead(u16 addr, u8 *pDat, u16 nBytes){
 
 s32 usrGetRomSize(void){
 	return(ROM_SZ_BYTES_USR);
+=======
+u8 ioReadReg(u16 addr, s32 *val){
+    if(addr >= (EEPROM_SIZE_REG/4)){    return     EEPROM_SIZE_REG/4;    }
+    ioRead(EEPROM_BASE_REG + addr*4, (u8*)val, 4);
+    return 0;
+}
+
+u8 ioWriteReg(u16 addr, s32 val){
+    if(addr >= (EEPROM_SIZE_REG/4)){    return     EEPROM_SIZE_REG/4;    }
+    ioWrite(EEPROM_BASE_REG + addr*4, (u8*)&val, 4);
+    return 0;
+}
+
+u16 usrWrite(u16 addr, const u8 *pDat, u16 nBytes){
+    if(addr >= EEPROM_SIZE_USR){    return     EEPROM_SIZE_USR;    }
+    ioWrite(EEPROM_BASE_USER + addr, pDat, nBytes);
+    return 0;
+}
+
+u16 usrRead(u16 addr, u8 *pDat, u16 nBytes){
+    if(addr >= (EEPROM_SIZE_USR/4)){    return     EEPROM_SIZE_USR;    }
+    ioRead(EEPROM_BASE_USER + addr, pDat, nBytes);
+    return 0;
+}
+
+u16 usrGetRomSize(void){
+    return(EEPROM_SIZE_USR);
+>>>>>>> 8e78bad99e5fb8e3566d992f419c8b0d4d480ca2
 }
 
 

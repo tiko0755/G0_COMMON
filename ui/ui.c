@@ -10,7 +10,7 @@ filename: uartLcdUi.c
 
 #include "ui.h"
 #include "misc.h"
-#include "board.h"
+#include "user_log.h"
 
 /**********************************************************
  Private function
@@ -61,7 +61,6 @@ void uiSetup(
     pd->Visual = uiVisual;
     
     pr->pUartDev->StartRcv(&pr->pUartDev->rsrc);
-    printLCD("rest");    // reset LCD
 }
 /**********************************************************
  read data
@@ -129,8 +128,8 @@ static void uiPolling(uiRsrc_T* rsrc, u16 tick){
     rsrc->tick = 0;
         
     if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
-        print("LCD:%s", buff);
-        if(strncmp(buff, "pg00.loaded", strlen("pg00.loaded")) == 0){
+        log("<%s buff:%s >", __func__, buff);
+        if(strncmp(buff, "lcd.start", strlen("lcd.start")) == 0){
             rsrc->hasLoaded = 1;
         }
         // to meet get command, format: p[str]0xff 0xff 0xff
