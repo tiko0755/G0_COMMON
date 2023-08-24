@@ -56,4 +56,23 @@ void devRename(char* devName, const char* NEW_NAME){
     strcpy(devName, NEW_NAME);
 }
 
+/* get complement code function, unsigned short must be U16 */
+#define COMPLEMENT_CODE_U16     0x8000
+long getComplementCode_u16(unsigned short raw_code)
+{
+	long complement_code;
+	int dir;
+
+	if (0 != (raw_code & COMPLEMENT_CODE_U16)){
+		dir = -1;
+		raw_code =  (0xFFFF - raw_code) + 1;
+	} else {
+		dir = 1;
+	}
+	complement_code = (long)raw_code * dir;
+
+	return complement_code;
+}
+
+
 /******************* (C) COPYRIGHT 2007 STMicroelectronics *****END OF FILE****/

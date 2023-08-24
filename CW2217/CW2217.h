@@ -30,9 +30,21 @@ typedef struct{
     cw2217_rsrc_t rsrc;
     
     int (*write_profile)(cw2217_rsrc_t *r,const u8* buf);
-    int (*get_chip_id)(cw2217_rsrc_t *r);
-    int (*get_voltage)(cw2217_rsrc_t* r);
-  
+    int (*update_chip_id)(cw2217_rsrc_t *r);
+    int (*update_voltage)(cw2217_rsrc_t* r);
+    int (*update_capacity)(cw2217_rsrc_t* r);
+    int (*update_temperature)(cw2217_rsrc_t* r);
+    int (*update_current)(cw2217_rsrc_t* r);
+    int (*update_cycleCount)(cw2217_rsrc_t* r);
+    int (*update_SOH)(cw2217_rsrc_t* r);
+    int (*update_fwVersion)(cw2217_rsrc_t* r);
+    int (*update_more)(cw2217_rsrc_t* r);
+    int (*init)(cw2217_rsrc_t* r);
+    int (*update_statue)(cw2217_rsrc_t* r);
+    int (*initX)(cw2217_rsrc_t* r);
+
+    
+    
 }cw2217_dev_t;
 
 #pragma pack(pop)           //recover align bytes from 4 bytes
