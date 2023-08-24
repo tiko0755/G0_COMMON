@@ -26,6 +26,10 @@ typedef void (*CBx)(int32_t, void* argp);
 typedef void (*XPrint)(const char* FORMAT_ORG, ...);
 typedef void (*Proc)(CB resolve, CB err);
 
+typedef int32_t (*IO_Write)(uint16_t addr, const uint8_t *pDat, uint16_t nBytes);
+typedef int32_t (*IO_Read)(uint16_t addr, uint8_t *pDat, uint16_t nBytes);
+
+
 //#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
 //// put user structure here
 //#pragma pack(pop)        //recover align bytes from 4 bytes
