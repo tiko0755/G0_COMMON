@@ -9,8 +9,7 @@ filename: ui_txtBox.c
 #include "stdarg.h"
 #include <string.h>
 #include "ui_txtbox.h"
-
-#include "board.h"
+#include "user_log.h"
 
 /**********************************************************
  Private function
@@ -44,7 +43,7 @@ static void tbox_setup(
     rsrc->parentsName = parentsName;
     strcpy(rsrc->name, NAME);
     rsrc->uiPrint = printLCD;
-
+    
     dev->cmd = uiTxtbox_cmd;
     dev->set = uiTxtbox_set;
     dev->get = uiTxtbox_get;
@@ -79,35 +78,38 @@ txtBoxNode* tbListInsert(txtBoxNode** head,
 
 static u8 uiTxtbox_cmd(tbox_rsrc_t* rsrc, const char* MSG){
     s32 i;
-    char str[UI_TEXT_MAX_LEN] = {0};
     const char* msg;
+    
     i = strlen(rsrc->name);
-    if(i>0 && strncmp(MSG, rsrc->name, i) != 0){
+    if(i <= 0){ return 0;    }
+    
+    if(strncmp(MSG, rsrc->name, i) != 0){
         return 0;
     }
     msg = &MSG[i+1];
-    if(strncmp(msg, "edit ", strlen("edit ")) == 0){
-        strcpy(str, &msg[strlen("edit ")]);
+    if(strncmp(msg, UI_EVNT_EDIT, strlen(UI_EVNT_EDIT)) == 0){
+        msg = &msg[strlen(UI_EVNT_EDIT)+1];
         for(i=0;i<UI_MAX_EVENT;i++){
-            if(strncmp(rsrc->cbTab[i].evnt, "edit", strlen("edit")) == 0){
-                if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, str);    }
+            if(strncmp(rsrc->cbTab[i].evnt, UI_EVNT_EDIT, strlen(UI_EVNT_EDIT)) == 0){
+                if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, msg);    }
             }
         }
-        if((rsrc->txt!=NULL) && (strncmp(str, rsrc->txt, strlen(str))!=0)){
+        if((rsrc->txt!=NULL) && (strncmp(msg, rsrc->txt, strlen(rsrc->txt))!=0)){
             for(i=0;i<UI_MAX_EVENT;i++){
-                if(strncmp(rsrc->cbTab[i].evnt, "change", strlen("change")) == 0){
-                    if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, str);    }
+                if(strncmp(rsrc->cbTab[i].evnt, UI_EVNT_CHANGE, strlen(UI_EVNT_CHANGE)) == 0){
+                    if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, msg);    }
                 }
             }
-            memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
-            strcpy(rsrc->txt, str);            
+            memset(rsrc->txt,0,rsrc->txtSz);
+            strcpy(rsrc->txt, msg);            
         }
         return 1;
     }
-    else if(strncmp(msg, "click ", strlen("click ")) == 0){
+    else if(strncmp(msg, UI_EVNT_CLICK, strlen(UI_EVNT_CLICK)) == 0){
+        msg = &msg[strlen(UI_EVNT_CLICK)+1];
         for(i=0;i<UI_MAX_EVENT;i++){
-            if(strncmp(rsrc->cbTab[i].evnt, "click", strlen("click")) == 0){
-                if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, str);    }
+            if(strncmp(rsrc->cbTab[i].evnt, UI_EVNT_CLICK, strlen(UI_EVNT_CLICK)) == 0){
+                if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, msg);    }
             }
         }
         return 1;
@@ -128,7 +130,7 @@ static s8 uiTxtbox_set(tbox_rsrc_t* rsrc, const char* attr, const char* FORMAT, 
         if(strncmp(attr,"txt",strlen("txt")) == 0){
             if(rsrc->txt){
                 rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, buf);
-                memset(rsrc->txt,0,UI_TEXT_MAX_LEN);
+                memset(rsrc->txt,0,rsrc->txtSz);
                 strcpy(rsrc->txt, buf);            
             }
         }

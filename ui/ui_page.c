@@ -10,7 +10,7 @@ filename: ui_page.c
 #include <string.h>
 #include "ui_page.h"
 
-#include "board.h"
+#include "user_log.h"
 
 /**********************************************************
  Private function
@@ -114,6 +114,7 @@ static textbox_t* uiPage_placeTxtBx(uiPageRsrc_t *r, const char* NAME, u8 txtMax
     txtBoxNode* p = tbListInsert(&r->tbLst, r->name, NAME, r->uiPrint);
     if(p == NULL){    return NULL;    }
     p->obj.rsrc.txt = txt;
+    p->obj.rsrc.txtSz = txtMax;
     return (&p->obj);
 }
 static textboxPic_t* uiPage_placeTxtBxPic(uiPageRsrc_t *r, const char* NAME, u8 txtMax){
