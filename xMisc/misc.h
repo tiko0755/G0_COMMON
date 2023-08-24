@@ -43,14 +43,16 @@ typedef int16_t     s16;
 //typedef int32_t     s32;
 typedef int            s32;
 
+#pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
+
 typedef struct {
+    u32 mac;
+    u32 ip;
+    u32 gw;
     u8 boardAddr;
     u8 baudHost;
     u8 baud485;
     u8 boardMux;
-    u32 ip;
-    u32 gw;
-    u32 mac;
 } CONF_T;
 
 typedef struct {
@@ -77,9 +79,9 @@ typedef struct {
 } CAL_T;
 
 typedef struct {
-    u16 offset;
-    u32 gainMul;
-    u32 gainDiv;
+    s32 gainMul;
+    u16 gainDiv;
+    s16 offset;
 }CAL32_T;
 
 typedef struct {
@@ -98,6 +100,9 @@ typedef struct {
     void* p;
     u16 len;
 } buff_t;
+
+#pragma pack(pop)           //recover align bytes from 4 bytes
+
 
 extern char CMD_END[4];
 extern const u32 BAUD[8];
