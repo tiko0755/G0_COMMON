@@ -14,14 +14,15 @@
 #include <stdbool.h>
 #include "misc.h"
 #include "usr_typedef.h"
+#include "stm_flash.h"
 
 // total storage size(bytes)
-#define TOTAL_SZ_BYTES          (4*1024)
+#define TOTAL_SZ_BYTES          (STM_FLASH_TOTAL_SZ_BYTES)
 
-extern u8 boardAddr;
-extern u8 baudHost;
-extern u8 baud485;
-extern u8 boardMux;
+//extern u8 boardAddr;
+//extern u8 baudHost;
+//extern u8 baud485;
+//extern u8 boardMux;
 
 extern CONF_T conf;
 
@@ -38,7 +39,7 @@ s32 usrRead(u16 addr, u8 *pDat, u16 nBytes);
 s32 usrGetRomSize(void);
 s32 usrGetRomFreeSize(void);
 
-void dist_setup(IO_Read rdMethod, IO_Write wrtMethod);
+void disk_setup(IO_Read rdMethod, IO_Write wrtMethod);
 
 
 #ifdef __cplusplus

@@ -8,7 +8,6 @@ filename: adcDev.c
 #include <string.h>
 #include <stdio.h>
 
-
 #include "adc_dev.h"
 #include "user_log.h"
 /**********************************************************

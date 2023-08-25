@@ -5,6 +5,7 @@ filename: cw2217.c
 /************************����ͷ�ļ�***************************************************/
 #include "cw2217.h"
 #include "misc.h"
+#include "string.h"
 #include "user_log.h"
 
 #define REG_CHIP_ID             0x00
@@ -57,7 +58,7 @@ filename: cw2217.c
 #define COMPLEMENT_CODE_U16     0x8000
 #define CW_SLEEP_100MS          100
 #define CW_SLEEP_200MS          200
-#define CW_SLEEP_COUNTS         50
+#define CW_SLEEP_COUNTS         100
 #define CW_TRUE                 1
 #define CW_RETRY_COUNT          3
 #define CW_VOL_UNIT             1000
@@ -93,24 +94,70 @@ static u8 config_profile_info[SIZE_OF_PROFILE] = {
  Private function
 **********************************************************/
 static int cw_write_profile(cw2217_rsrc_t *r,const u8* buf);
+static int cw221X_startActive(cw2217_rsrc_t *r);
+static int cw221X_sleep(cw2217_rsrc_t *r);
 static int cw_get_chip_id(cw2217_rsrc_t *r);
 static int cw_get_voltage(cw2217_rsrc_t* r);
+static int cw_get_capacity(cw2217_rsrc_t* r);
+static int cw_get_temp(cw2217_rsrc_t *r);
+static long get_complement_code(unsigned short raw_code);
+static int cw_get_current(cw2217_rsrc_t *r);
+static int cw_get_cycle_count(cw2217_rsrc_t *r);
+static int cw_get_soh(cw2217_rsrc_t *r);
+static int cw_get_fw_version(cw2217_rsrc_t *r);
+static int cw_update_data(cw2217_rsrc_t *r);
+static int cw_init_data(cw2217_rsrc_t *r);
+static int cw_config_start_ic(cw2217_rsrc_t *r);
+static int cw221X_get_state(cw2217_rsrc_t *r);
+static int cw_init(cw2217_rsrc_t *r);
+static void cw_bat_work(cw2217_rsrc_t *r);
+
+static void cwBat_start(cw2217_rsrc_t *r, u16 interval);
+static void cwBat_stop(cw2217_rsrc_t *r);
+static void cwBat_tmrHandler(void* e);
 
 /**********************************************************
  Public function
 **********************************************************/
 void cw2217_setup(
     cw2217_dev_t *d,
-    IIC_IO_Dev_T *pIIC
+    IIC_IO_Dev_T *pIIC,
+    appTmrDev_t* tmr
 ){
+    memset(d,0,sizeof(cw2217_dev_t));
     d->rsrc.iicDev = pIIC;
+    d->rsrc.tmr = tmr;
     
     d->update_chip_id = cw_get_chip_id;
     d->update_voltage = cw_get_voltage;
     d->write_profile = cw_write_profile;
+    d->update_more = cw_update_data;
     
-    cw_get_chip_id(&d->rsrc);
+    d->startActive = cw221X_startActive;
     
+    d->init = cw_init;
+
+    
+}
+
+static void cwBat_tmrHandler(void* e){
+    cw2217_rsrc_t* r = (cw2217_rsrc_t*)e;
+    
+    switch(r->squ){
+        case 1:{ //  
+            break;
+        }
+    }
+
+}
+
+static void cwBat_start(cw2217_rsrc_t *r, u16 interval){
+    r->pollingTim = interval;
+    r->tmr->start(&r->tmr->rsrc, interval, POLLING_REPEAT, cwBat_tmrHandler, r);
+}
+
+static void cwBat_stop(cw2217_rsrc_t *r){
+    r->tmr->stop(&r->tmr->rsrc);
 }
 
 /* CW221X iic write profile function */
@@ -140,7 +187,7 @@ static int cw_write_profile(cw2217_rsrc_t *r,const u8* buf)
  * different value after reset operation since it is a brand-new calculation based on the latest battery status.
  * CONFIG [3:0] is reserved. Don't do any operation with it.
  */
-static int cw221X_active(cw2217_rsrc_t *r)
+static int cw221X_startActive(cw2217_rsrc_t *r)
 {
 	int ret;
 	unsigned char reg_val = CONFIG_MODE_RESTART;
@@ -148,13 +195,15 @@ static int cw221X_active(cw2217_rsrc_t *r)
     ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_MODE_CONFIG, &reg_val, 1);
 	if (ret < 0)
 		return ret;
-	// msleep(CW_SLEEP_20MS);  /* Here delay must >= 20 ms */
+    
+    r->tmr->thread_delay(&r->tmr->rsrc, 2);
 
 	reg_val = CONFIG_MODE_ACTIVE;
     ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_MODE_CONFIG, &reg_val, 1);
 	if (ret < 0)
 		return ret;
-	// msleep(CW_SLEEP_10MS);
+    
+	r->tmr->thread_delay(&r->tmr->rsrc, 2);
 
 	return 0;
 }
@@ -172,19 +221,19 @@ static int cw221X_active(cw2217_rsrc_t *r)
 static int cw221X_sleep(cw2217_rsrc_t *r)
 {
 	int ret;
-	unsigned char reg_val = CONFIG_MODE_RESTART;
+	unsigned char reg_val = CONFIG_MODE_RESTART;    // 0X30
 
     ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_MODE_CONFIG, &reg_val, 1);
 	if (ret < 0)
 		return ret;
-	//msleep(CW_SLEEP_20MS);  /* Here delay must >= 20 ms */
+	r->tmr->thread_delay(&r->tmr->rsrc, 2);
 
 	reg_val = CONFIG_MODE_SLEEP;
     ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_MODE_CONFIG, &reg_val, 1);
 
 	if (ret < 0)
 		return ret;
-	// msleep(CW_SLEEP_10MS);
+	r->tmr->thread_delay(&r->tmr->rsrc, 2);
 
 	return 0;
 }
@@ -195,17 +244,15 @@ static int cw221X_sleep(cw2217_rsrc_t *r)
  */
 static int cw_get_chip_id(cw2217_rsrc_t *r)
 {
-    log("<%s >", __func__);
 	int ret;
 	unsigned char reg_val;
 	int chip_id;
 
     ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_CHIP_ID, &reg_val, 1);
-	if (ret < 0)
+	if (ret < 0){
 		return ret;
-
+    }
 	r->chip_id = reg_val;
-    log("<%s id:0x%02x >", __func__, reg_val);
 	return 0;
 }
 
@@ -279,7 +326,7 @@ static int cw_get_temp(cw2217_rsrc_t *r)
 	unsigned char reg_val;
 	int temp;
 
-    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_VCELL_H, &reg_val, 1);
+    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_TEMP, &reg_val, 1);
     if (ret < 0)
 		return ret;
 
@@ -409,6 +456,10 @@ static int cw_get_fw_version(cw2217_rsrc_t *r)
 
 static int cw_update_data(cw2217_rsrc_t *r)
 {
+    if(r->isReady == 0){
+        return -1;
+    }
+    
 	int ret = 0;
 	ret += cw_get_voltage(r);
 	ret += cw_get_capacity(r);
@@ -428,13 +479,7 @@ static int cw_init_data(cw2217_rsrc_t *r)
 		return ret;
 	}
 	ret += cw_get_chip_id(r);
-	ret += cw_get_voltage(r);
-	ret += cw_get_capacity(r);
-	ret += cw_get_temp(r);
-	ret += cw_get_current(r);
-	ret += cw_get_cycle_count(r);
-	ret += cw_get_soh(r);
-	
+    ret += cw_update_data(r);
 	return ret;
 }
 
@@ -448,41 +493,40 @@ static int cw_config_start_ic(cw2217_rsrc_t *r)
 	ret = cw221X_sleep(r);
 	if (ret < 0)
 		return ret;	
-
+    
 	/* update new battery info */
 	ret = cw_write_profile(r, config_profile_info);
 	if (ret < 0)
 		return ret;
-
+    
 	/* set UPDATE_FLAG AND SOC INTTERRUP VALUE*/
 	reg_val = CONFIG_UPDATE_FLG | GPIO_SOC_IRQ_VALUE;   
     ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_SOC_ALERT, &reg_val, 1);
-    
 	if (ret < 0)
 		return ret;
-
+    
 	/*close all interruptes*/
 	reg_val = 0; 
 	ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_SOC_ALERT, &reg_val, 1);
 	if (ret < 0)
 		return ret;
-
-	ret = cw221X_active(r);
+    
+	ret = cw221X_startActive(r);
 	if (ret < 0) 
 		return ret;
-
+    
 	while (CW_TRUE) {
-//		msleep(CW_SLEEP_100MS);
         ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_IC_STATE, &reg_val, 1);
 		if (IC_READY_MARK == (reg_val & IC_READY_MARK))
 			break;
 		count++;
-		if (count >= CW_SLEEP_COUNTS) {
+		if (count >= CW_SLEEP_COUNTS){
 			cw221X_sleep(r);
+            log("</%s 'err' count:%d tick:%d >", __func__, count, HAL_GetTick());
 			return -1;
 		}
+        r->tmr->thread_delay(&r->tmr->rsrc, 100);
 	}
-
 	return 0;
 }
 
@@ -526,39 +570,36 @@ static int cw221X_get_state(cw2217_rsrc_t *r)
 /*CW221X init function, Often called during initialization*/
 static int cw_init(cw2217_rsrc_t *r)
 {
-	int ret;
+	int ret,i;
 
-	ret = cw_get_chip_id(r);
-	if (ret < 0) {
-		log("iic read write error");
-		return ret;
-	}
+    for(i=0;;i++){
+        ret = cw_get_chip_id(r);
+        if (ret == 0) {
+            break;
+        }
+        else if(i > 100){
+            log("<%s err:'NOT_get_chip_id'>", __func__);
+            return -1;
+        }
+        r->tmr->thread_delay(&r->tmr->rsrc, 5);
+    }
+
 	if (r->chip_id != IC_VCHIP_ID){
-		log("not cw221X\n");
-		return -1;
+		return -2;
 	}
 
 	ret = cw221X_get_state(r);
 	if (ret < 0) {
-		log("iic read write error");
-		return ret;
+		return -3;
 	}
 
 	if (ret != 0) {
 		ret = cw_config_start_ic(r);
 		if (ret < 0)
-			return ret;
+			return -4;
 	}
-
+    r->isReady = 1;
 	return 0;
-}
-
-static void cw_bat_work(cw2217_rsrc_t *r)
-{
-    int ret;
-	ret = cw_update_data(r);
-	if (ret < 0)
-		log("iic read error when update data");
 }
 
 /**********************************************************

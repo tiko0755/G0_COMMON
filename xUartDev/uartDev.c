@@ -21,7 +21,7 @@
 /* Private define ------------------------------------------------------------*/
 #define UART_FRAM_HEAD   (0xed98ba)
 #define UART_FRAM_END    (0x89abcd)
-#define UART_INTERVAL     (1)
+#define UART_INTERVAL    (2)
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/

@@ -25,19 +25,23 @@ static void appTmr_polling(appTmrRsrc_t* rsrc);
 static int32_t appTmr_start(appTmrRsrc_t* rsrc, uint16_t interval, app_timer_type_t type, CB1 hldr, void* e);
 static void appTmr_stop(appTmrRsrc_t* rsrc);
 static uint32_t appTmr_status(appTmrRsrc_t* rsrc);
+static void appTmr_delay(appTmrRsrc_t* rsrc, uint16_t dly_ms);
 
 /*
  * GLOBAL FUNCTION DEFINITIONS
  *****************************************************************************************
  */
 
-void setup_appTmr(appTmrDev_t *d){
+void setup_appTmr(appTmrDev_t *d, CB0 pollingWhileDelay){
     memset(&d->rsrc, 0, sizeof(appTmrDev_t));
+    d->rsrc.pollingWhileDelay = pollingWhileDelay;
+    
     d->isr = appTmr_isr;
     d->polling = appTmr_polling;
     d->start = appTmr_start;
     d->stop = appTmr_stop;
     d->status = appTmr_status;
+    d->thread_delay = appTmr_delay;
 }
 
 static int32_t appTmr_start(appTmrRsrc_t* r, uint16_t interval, app_timer_type_t type, CB1 hldr, void* e){
@@ -64,9 +68,8 @@ static uint32_t appTmr_status(appTmrRsrc_t* r){
  ****************************************************************************************
  */
 static void appTmr_isr(appTmrRsrc_t* r, uint16_t tick){
+    r->tick += tick;    // keep add it, so it can timing for thread_delay
     if(r->handler == NULL){ return;     }
-    r->tick += tick;
-
     if(r->tick >= r->interval){
         if((r->type == POLLING_REPEAT) || (r->type == POLLING_ONESHOT)){
             return;
@@ -94,5 +97,21 @@ static void appTmr_polling(appTmrRsrc_t* r){
             r->handler = NULL;
         }
     }
+}
+
+static void appTmr_delay(appTmrRsrc_t* r, uint16_t dly_ms){
+    uint32_t t;
+    CB1 hdlr_bck = r->handler;
+    t = r->tick;
+    r->handler = NULL;
+    r->tick = 0;
+
+    do{
+        if(r->pollingWhileDelay)
+            r->pollingWhileDelay();
+    }while(r->tick < dly_ms);
+    
+    r->tick += t;
+    r->handler = hdlr_bck;
 }
 

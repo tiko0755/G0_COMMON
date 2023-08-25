@@ -3,117 +3,101 @@
 #include <stdlib.h>
 #include "user_log.h"
 
+appTmrDev_t* stmFlsh_tmr = NULL;
+
 static uint32_t GetPage(uint32_t Addr);
-static FLASH_EraseInitTypeDef EraseInitStruct = {0};
-static u8* stm_flsh_buff = NULL;
-static uint32_t stmFlshAddr = 0, stmFlshBytes = 0;
-static CB2 stmFlshCmplt = NULL;
+static void stmFlsh_printPG(uint8_t *);
 
-static void stmFlash_cmplt(s32 stat, void* e){
-    log("<%s stat:%d >", __func__, stat);
-}
+int32_t stmFlsh_write(uint16_t addr, const uint8_t *pDat, uint16_t nBytes){
+    uint32_t startAddr, endAddr;
+    u32 i,tick;
 
-int32_t ioWriteAsyn(uint16_t addr, const uint8_t *pDat, uint16_t nBytes, CB2 cmplt){
-    stmFlshAddr = addr;
-    stmFlshBytes = nBytes;
-    stmFlshCmplt = cmplt;
+    u8 mem[FLASH_PAGE_SIZE];
+    memcpy(mem, (u8*)STM_FLASH_START_ADDR, FLASH_PAGE_SIZE);
+    
+//    printS("raw:\n");
+//    stmFlsh_printPG(mem);
+
+    startAddr = STM_FLASH_START_ADDR + addr;
+    endAddr = startAddr + nBytes -1;
+
+    // Halfworld align
+    if(startAddr & BIT(0)){
+        startAddr -= 1;
+    }
+
+//    log("<%s startAddr:0x%08x >", __func__, startAddr);
+//    log("<%s endAddr:0x%08x >", __func__, endAddr);
     
     // check if the area to be programed is empty
     u8 emptyChk = 0xff;
-    u32 i;
-    for(i=0; (i<nBytes) && (emptyChk==0xff); i++){
-        emptyChk &= *(u8*)(STM_FLASH_START_ADDR+i);
+    for(i=startAddr; (i<=endAddr) && (emptyChk==0xff); i+=2){
+        emptyChk &=  mem[i - STM_FLASH_START_ADDR];
+        emptyChk &= mem[i - STM_FLASH_START_ADDR + 1];
     }
+//    log("<%s chk:0x%02x >", __func__, emptyChk);
     
+    memcpy(&mem[addr], pDat, nBytes);
+  
+//    printS("merge:\n");
+//    stmFlsh_printPG(mem);
+
+    
+    if(emptyChk != 0xff){
+        tick = HAL_GetTick();
+        stmFlsh_format();
+//        log("<%s eraseTim: %d >", __func__, HAL_GetTick()-tick);
+        startAddr = STM_FLASH_START_ADDR;
+        endAddr = STM_FLASH_END_ADDR;
+    }
+
+    HAL_FLASH_Unlock();
+    tick = HAL_GetTick();
+    // program 32bit
+    u16 x; 
+    for(i=startAddr; i<=endAddr; i+=2){
+        x = mem[i-STM_FLASH_START_ADDR + 1];    x <<= 8;
+        x |= mem[i-STM_FLASH_START_ADDR];
+        if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, i, x) != HAL_OK){
+            log("<%s error i:%04d \tx:0x%04x >", __func__, i, x);
+            return -2;
+        }
+        // per 20 count, polling other task
+        if(i%20 == 19){
+            stmFlsh_tmr->thread_delay(&stmFlsh_tmr->rsrc, 0);   // just do polling job
+        }
+    }
+    HAL_FLASH_Lock();
+    
+//    printS("prog:\n");
+//    stmFlsh_printPG(mem);
+    return 0;
+}
+
+s32 stmFlsh_format(void){
+    FLASH_EraseInitTypeDef EraseInitStruct = {0};
     HAL_FLASH_Unlock();
     /* Fill EraseInit structure*/
     EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
     EraseInitStruct.PageAddress = STM_FLASH_START_ADDR;
     EraseInitStruct.NbPages     = STM_FLASH_USED_PAGES;
-
-    if (HAL_FLASHEx_Erase_IT(&EraseInitStruct) != HAL_OK)
-    {
+    u32 pgErr;
+    if(HAL_FLASHEx_Erase(&EraseInitStruct, &pgErr) != HAL_OK){
+        log("<%s pgErr:%d >", __func__, pgErr);
         HAL_FLASH_Lock();
-        return  -2;
-    }    
-   
-    return 0;
-    
-    // need erase first
-    if(emptyChk != 0xff){
-        if(stm_flsh_buff){
-            free(stm_flsh_buff);
-            return -1;
-        }
-        stm_flsh_buff = malloc(FLASH_PAGE_SIZE);
-        memcpy(stm_flsh_buff, (u8*)STM_FLASH_START_ADDR, FLASH_PAGE_SIZE);
-        HAL_FLASH_Unlock();
-        /* Fill EraseInit structure*/
-        EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
-        EraseInitStruct.PageAddress = STM_FLASH_START_ADDR;
-        EraseInitStruct.NbPages     = STM_FLASH_USED_PAGES;
-        /* Note: If an erase operation in Flash memory also concerns data in the data or instruction cache,
-         you have to make sure that these data are rewritten before they are accessed during code
-         execution. If this cannot be done safely, it is recommended to flush the caches by setting the
-         DCRST and ICRST bits in the FLASH_CR register. */
-        if (HAL_FLASHEx_Erase_IT(&EraseInitStruct) != HAL_OK)
-        {
-            HAL_FLASH_Lock();
-            return  -2;
-        }
+        return -1;
     }
-
-    
-    
-
-    
-//    
-//    
-
-//    
-//    
-//  /* Get the 1st page to erase */
-//  u32 FirstPage = GetPage(STM_FLASH_START_ADDR);
-
-//  /* Get the number of pages to erase from 1st page */
-//  u32 NbOfPages = GetPage(STM_FLASH_END_ADDR) - FirstPage + 1;
-
-
-
-//  log("<%s eraseTim:%d >", HAL_GetTick()-tick);
-//  tick = HAL_GetTick();
-//    
-    // program 32bit
-    u32 x = pDat[0];    x <<= 8;
-    x |= pDat[1];   x <<= 8;
-    x |= pDat[2];   x <<= 8;
-    x |= pDat[3];
-
-    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, (STM_FLASH_START_ADDR+addr), x);
-    
-//    HAL_FLASH_Program_IT(FLASH_TYPEPROGRAM_HALFWORD, (STM_FLASH_START_ADDR+addr), x);
-//  
-//  
-//    HAL_FLASH_Lock();
+    HAL_FLASH_Lock();
     return 0;
 }
 
+int32_t stmFlsh_read(uint16_t addr, uint8_t *pDat, uint16_t nBytes){
+    memcpy(pDat, stmFlsh_readDMA(addr), nBytes);
+    return 0;
+}
 
-
-
-u8* ioReadDMA(uint16_t addr){
+u8* stmFlsh_readDMA(uint16_t addr){
     return((u8*)(STM_FLASH_START_ADDR+addr));
-}
-
-void HAL_FLASH_EndOfOperationCallback(uint32_t ReturnValue){
-    log("<%s ReturnValue:%d >", __func__, ReturnValue);
-    stmFlash_cmplt(ReturnValue,NULL);
-
-}
-
-void HAL_FLASH_OperationErrorCallback(uint32_t ReturnValue){
-    log("<%s ReturnValue:%d >", __func__, ReturnValue);
-    stmFlash_cmplt(ReturnValue,NULL);
 }
 
 /**
@@ -123,6 +107,29 @@ void HAL_FLASH_OperationErrorCallback(uint32_t ReturnValue){
   */
 static uint32_t GetPage(uint32_t Addr)
 {
-  return (Addr - FLASH_BASE) / FLASH_PAGE_SIZE;;
+  return (Addr - FLASH_BASE) / FLASH_PAGE_SIZE;
+}
+
+void stmFlsh_print(XPrint xprnt){
+    int i;
+    uint8_t* p = stmFlsh_readDMA(0);
+    for(i=0;i<FLASH_PAGE_SIZE;i++){
+        xprnt("%02x ", p[i]);
+        if(i%16 == 15){
+            xprnt("\n");
+            stmFlsh_tmr->thread_delay(&stmFlsh_tmr->rsrc, 0);   // just do polling job
+        }
+    }
+}
+
+static void stmFlsh_printPG(uint8_t* mem){
+    int i;
+    for(i=0;i<FLASH_PAGE_SIZE;i++){
+        log_raw("%02x ", mem[i]);
+        if(i%16 == 15){
+            log_raw("\n");
+            stmFlsh_tmr->thread_delay(&stmFlsh_tmr->rsrc, 0);   // just do polling job
+        }
+    }
 }
 

@@ -16,7 +16,7 @@
  */
 #include <stdint.h>
 
-typedef void (*CB0)();
+typedef void (*CB0)(void);
 typedef void (*CB1)(void* argV);
 typedef void (*CB2)(int32_t argN, void* argV);
 typedef void (*CBS)(const char* FORMAT_ORG, ...);
