@@ -7,6 +7,7 @@ filename: cw2217.c
 #include "misc.h"
 #include "string.h"
 #include "user_log.h"
+#include "thread_delay.h"
 
 #define REG_CHIP_ID             0x00
 #define REG_VCELL_H             0x02
@@ -196,14 +197,14 @@ static int cw221X_startActive(cw2217_rsrc_t *r)
 	if (ret < 0)
 		return ret;
     
-    r->tmr->thread_delay(&r->tmr->rsrc, 2);
+    thread_delay(2);
 
 	reg_val = CONFIG_MODE_ACTIVE;
     ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_MODE_CONFIG, &reg_val, 1);
 	if (ret < 0)
 		return ret;
     
-	r->tmr->thread_delay(&r->tmr->rsrc, 2);
+	thread_delay(2);
 
 	return 0;
 }
@@ -226,14 +227,14 @@ static int cw221X_sleep(cw2217_rsrc_t *r)
     ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_MODE_CONFIG, &reg_val, 1);
 	if (ret < 0)
 		return ret;
-	r->tmr->thread_delay(&r->tmr->rsrc, 2);
+	thread_delay(2);
 
 	reg_val = CONFIG_MODE_SLEEP;
     ret = r->iicDev->Write(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_MODE_CONFIG, &reg_val, 1);
 
 	if (ret < 0)
 		return ret;
-	r->tmr->thread_delay(&r->tmr->rsrc, 2);
+	thread_delay(2);
 
 	return 0;
 }
@@ -525,7 +526,7 @@ static int cw_config_start_ic(cw2217_rsrc_t *r)
             log("</%s 'err' count:%d tick:%d >", __func__, count, HAL_GetTick());
 			return -1;
 		}
-        r->tmr->thread_delay(&r->tmr->rsrc, 100);
+        thread_delay(100);
 	}
 	return 0;
 }
@@ -581,7 +582,7 @@ static int cw_init(cw2217_rsrc_t *r)
             log("<%s err:'NOT_get_chip_id'>", __func__);
             return -1;
         }
-        r->tmr->thread_delay(&r->tmr->rsrc, 5);
+        thread_delay(5);
     }
 
 	if (r->chip_id != IC_VCHIP_ID){

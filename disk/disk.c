@@ -1,6 +1,7 @@
 #include "disk.h"
 #include <string.h>
 #include "user_log.h"
+#include "CRC16.h"
 
 //u8 boardAddr = 0;
 //u8 baudHost = 4;        // BAUD[4]=115200
@@ -122,8 +123,6 @@ s32 usrRead(u16 addr, u8 *pDat, u16 nBytes){
 	return 0;
 }
 
-s32 usrGetRomSize(void){
-	return(ROM_SZ_BYTES_USR);
-}
-
-
+//s32 usrGetRomSize(void){
+//	return(ROM_SZ_BYTES_USR);
+//}

@@ -2,8 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "user_log.h"
-
-appTmrDev_t* stmFlsh_tmr = NULL;
+#include "thread_delay.h"
 
 static uint32_t GetPage(uint32_t Addr);
 static void stmFlsh_printPG(uint8_t *);
@@ -64,7 +63,7 @@ int32_t stmFlsh_write(uint16_t addr, const uint8_t *pDat, uint16_t nBytes){
         }
         // per 20 count, polling other task
         if(i%20 == 19){
-            stmFlsh_tmr->thread_delay(&stmFlsh_tmr->rsrc, 0);   // just do polling job
+            thread_delay(0);   // just do polling job
         }
     }
     HAL_FLASH_Lock();
@@ -117,7 +116,7 @@ void stmFlsh_print(XPrint xprnt){
         xprnt("%02x ", p[i]);
         if(i%16 == 15){
             xprnt("\n");
-            stmFlsh_tmr->thread_delay(&stmFlsh_tmr->rsrc, 0);   // just do polling job
+            thread_delay(0);   // just do polling job
         }
     }
 }
@@ -128,7 +127,7 @@ static void stmFlsh_printPG(uint8_t* mem){
         log_raw("%02x ", mem[i]);
         if(i%16 == 15){
             log_raw("\n");
-            stmFlsh_tmr->thread_delay(&stmFlsh_tmr->rsrc, 0);   // just do polling job
+            thread_delay(0);   // just do polling job
         }
     }
 }

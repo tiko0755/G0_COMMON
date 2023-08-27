@@ -48,7 +48,6 @@ typedef struct {
     int32_t (*start)(appTmrRsrc_t* rsrc, uint16_t interval, app_timer_type_t type, CB1 hldr, void* e);
     void (*stop)(appTmrRsrc_t* rsrc);
     uint32_t (*status)(appTmrRsrc_t* rsrc);
-    void (*thread_delay)(appTmrRsrc_t* rsrc, uint16_t dly_ms);
 }appTmrDev_t;
 
 #pragma pack(pop)           //recover align bytes from 4 bytes
