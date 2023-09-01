@@ -17,12 +17,11 @@ filename: uartLcdUi.c
 **********************************************************/
 // pgMain.tbStatus
 static uiPage_t* uiNewPage(uiRsrc_T *rsrc, const char* NAME);
-static textbox_t* uiPlaceTxtBx(uiRsrc_T*, const char* PAGE, const char* COMPONENT, u8 txtMax);
-static textboxPic_t* uiPlaceTxtBxPic(uiRsrc_T*, const char* PAGE, const char* COMPONENT, u8 txtMax);
-static pic_t* uiPlacePic(uiRsrc_T*, const char* PAGE, const char* COMPONENT);
-static textbox_t* uiGetTxtBx(uiRsrc_T*,  const char* PAGE_NAME, const char* COMPONENT_NAME);
-static textboxPic_t* uiGetTxtBxPic(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_NAME);
-static pic_t* uiGetPic(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_NAME);
+
+static uiComponent_t* uiPlaceComponent(uiRsrc_T*, const char* PAGE, const char* COMPONENT, u8 txtMax);
+static uiComponent_t* uiGetComponent(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_NAME);
+
+static uiComponent_t* uiPlaceComponent(uiRsrc_T*, const char* PAGE, const char* COMPONENT, u8 txtLen);
 
 static void uiPolling(uiRsrc_T* r, u16 tick);
 static s8 uiVisual(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis);
@@ -52,12 +51,7 @@ void uiSetup(
     pd->Set = uiSet;
     pd->Bind = uiBind;
     pd->NewPage = uiNewPage;
-    pd->PlacePic = uiPlacePic;
-    pd->PlaceTxtBx = uiPlaceTxtBx;
-    pd->PlaceTxtBxPic = uiPlaceTxtBxPic;
-    pd->GetPic = uiGetPic;
-    pd->GetTxtBx = uiGetTxtBx;
-    pd->GetTxtBxPic = uiGetTxtBxPic;
+
     pd->Visual = uiVisual;
     
     pr->pUartDev->StartRcv(&pr->pUartDev->rsrc);
@@ -94,23 +88,18 @@ static uiPageNode* uiGetPageNode(uiRsrc_T *r, const char* PAGE){
     return NULL;
 }
 
-static textbox_t* uiPlaceTxtBx(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 txtMax){
+static uiComponent_t* uiPlaceComponent(uiRsrc_T* r, const char* PAGE, const char* COMPONENT, u8 txtLen){
     uiPageNode *pgNode = uiGetPageNode(r,PAGE);
     if(pgNode==NULL){    return NULL;    }
-    return(pgNode->obj.placeTxtBx(&pgNode->obj.rsrc, COMPONENT, txtMax));
+    return(pgNode->obj.placeComponent(&pgNode->obj.rsrc, COMPONENT, txtLen));
 }
 
-static textboxPic_t* uiPlaceTxtBxPic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 txtMax){
+static uiComponent_t* uiGetComponent(uiRsrc_T* r, const char* PAGE, const char* COMPONENT){
     uiPageNode *pgNode = uiGetPageNode(r,PAGE);
     if(pgNode==NULL){    return NULL;    }
-    return(pgNode->obj.placeTxtBxPic(&pgNode->obj.rsrc, COMPONENT, txtMax));
+    return(pgNode->obj.getComponent(&pgNode->obj.rsrc, COMPONENT));
 }
 
-static pic_t* uiPlacePic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
-    uiPageNode *pgNode = uiGetPageNode(r,PAGE);
-    if(pgNode==NULL){    return NULL;    }
-    return(pgNode->obj.placePic(&pgNode->obj.rsrc, COMPONENT));
-}
 
 /**********************************************************
  ui polling
@@ -152,7 +141,7 @@ static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout){
         rsrc->pUartDev->RxPolling(&rsrc->pUartDev->rsrc);
         if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
             if(sscanf(buff, "max tester %s", rsrc->ver) == 1){
-                print("LCD Ver%s\n", rsrc->ver);
+                log("LCD Ver%s\n", rsrc->ver);
                 return 0;
             }
         }
@@ -190,33 +179,10 @@ static s8 uiVisual(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis)
 }
 
 static s8 uiBind(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, const char* EVENT, uiCB cb){
-    textbox_t* tb = uiGetTxtBx(r,  PAGE, COMPONENT);
-    if(tb != NULL){    return(tb->bind(&tb->rsrc, EVENT, cb));    }
-    textboxPic_t* tbp = uiGetTxtBxPic(r,  PAGE, COMPONENT);
-    if(tbp != NULL){    return(tbp->bind(&tbp->rsrc, EVENT, cb));    }
-    pic_t* pic = uiGetPic(r,  PAGE, COMPONENT);
-    if(pic != NULL){    return(pic->bind(&pic->rsrc, EVENT, cb));    }
+    uiComponent_t* obj = uiGetComponent(r,  PAGE, COMPONENT);
+    if(obj != NULL){    return(obj->bind(&obj->rsrc, EVENT, cb));    }
     return -1;
 }
-
-static textbox_t* uiGetTxtBx(uiRsrc_T *r,  const char* PAGE, const char* COMPONENT){
-    uiPageNode *pgNode = uiGetPageNode(r,PAGE);
-    if(pgNode==NULL){    return NULL;    }
-    return(pgNode->obj.getTxtBx(&pgNode->obj.rsrc, COMPONENT));
-}
-
-static textboxPic_t* uiGetTxtBxPic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
-    uiPageNode *pgNode = uiGetPageNode(r,PAGE);
-    if(pgNode==NULL){    return NULL;    }
-    return(pgNode->obj.getTxtBxPic(&pgNode->obj.rsrc, COMPONENT));
-}
-
-static pic_t* uiGetPic(uiRsrc_T *r, const char* PAGE, const char* COMPONENT){
-    uiPageNode *pgNode = uiGetPageNode(r,PAGE);
-    if(pgNode==NULL){    return NULL;    }
-    return(pgNode->obj.getPic(&pgNode->obj.rsrc, COMPONENT));
-}
-
 
 
 /**********************************************************
