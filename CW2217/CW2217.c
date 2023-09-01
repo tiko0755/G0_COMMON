@@ -298,7 +298,7 @@ static int cw_get_capacity(cw2217_rsrc_t* r)
 	int ui_soc;
 	int remainder;
 
-    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_VCELL_H, reg_val, 2);
+    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_SOC_INT, reg_val, 2);
 	if (ret < 0)
 		return ret;
 	soc_h = reg_val[0];
@@ -372,12 +372,13 @@ static int cw_get_current(cw2217_rsrc_t *r)
 	long long cw_current; /* use long long type to guarantee 8 bytes space*/
 	unsigned short current_reg;  /* unsigned short must u16 */
 
-    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_VCELL_H, reg_val, 2);
+    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_CURRENT_H, reg_val, 2);
 	if (ret < 0)
 		return ret;
 
 	current_reg = (reg_val[0] << 8) + reg_val[1];
 	cw_current = get_complement_code(current_reg);
+
 	if(((r->fw_version) & (CW2215_MARK != 0)) || ((r->fw_version) & (CW2217_MARK != 0))){
 		cw_current = cw_current * 1600 / USER_RSENSE;
 	}else if((r->fw_version != 0) && (r->fw_version & (0xC0 == CW2218_MARK))){
@@ -400,7 +401,7 @@ static int cw_get_cycle_count(cw2217_rsrc_t *r)
 	unsigned char reg_val[2] = {0, 0};
 	int cycle;
 
-    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_VCELL_H, reg_val, 2);
+    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_CYCLE_H, reg_val, 2);
 	if (ret < 0)
 		return ret;
 
@@ -422,7 +423,7 @@ static int cw_get_soh(cw2217_rsrc_t *r)
 	unsigned char reg_val;
 	int soh;
 
-    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_VCELL_H, &reg_val, 1);
+    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_SOH, &reg_val, 1);
 	if (ret < 0)
 		return ret;
 
@@ -445,7 +446,7 @@ static int cw_get_fw_version(cw2217_rsrc_t *r)
 	unsigned char reg_val;
 	int fw_version;
 
-    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_VCELL_H, &reg_val, 1);
+    ret = r->iicDev->Read(&r->iicDev->rsrc, CW2215_DEV_ADDR, REG_FW_VERSION, &reg_val, 1);
 	if (ret < 0)
 		return ret;
 

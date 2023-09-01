@@ -35,12 +35,6 @@ s32 usrRead(u16 addr, u8 *pDat, u16 nBytes);
 #define USR_ADC_BASE    0
 
 
-
-
-
-
-
-
 void disk_setup(IO_Read rdMethod, IO_Write wrtMethod);
 
 #ifdef __cplusplus
