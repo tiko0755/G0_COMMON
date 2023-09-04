@@ -78,8 +78,10 @@ s32 stmFlsh_format(void){
     HAL_FLASH_Unlock();
     /* Fill EraseInit structure*/
     EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
-    EraseInitStruct.PageAddress = STM_FLASH_START_ADDR;
+    EraseInitStruct.Page = GetPage(FLASH_USER_START_ADDR);
     EraseInitStruct.NbPages     = STM_FLASH_USED_PAGES;
+    EraseInitStruct.Nb
+    
     u32 pgErr;
     if(HAL_FLASHEx_Erase(&EraseInitStruct, &pgErr) != HAL_OK){
         log("<%s pgErr:%d >", __func__, pgErr);

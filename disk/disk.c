@@ -100,9 +100,12 @@ s32 configRead(void){
 }
 
 s32 ioReadReg(u16 addr, s32 *val){
-	if(addr >= (ROM_SZ_BYTES_REG/4)){	return 	ROM_SZ_BYTES_REG/4;	}
-	disk_ioRead(ROM_BASE_REG + addr*4, (u8*)val, 4);
-	return 0;
+	if(addr >= (ROM_SZ_BYTES_REG/4)){	return 	-1;	}
+	if(disk_ioRead!=NULL){
+        disk_ioRead(ROM_BASE_REG + addr*4, (u8*)val, 4);
+        return 0;
+    }
+    return -2;
 }
 
 s32 ioWriteReg(u16 addr, s32 val){

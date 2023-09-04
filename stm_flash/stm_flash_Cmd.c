@@ -18,10 +18,12 @@
 /* Private variables ---------------------------------------------------------*/
 const char STM_FLSH_HELP[] = {
     "STM_FLAH command: "
-    "\n %B.%D.help()"
-    "\n %B.%D.readPin()/(indx)/(indx0,indx1)"
-    "\n %B.%D.falling 0x%x"
-    "\n %B.%D.raising 0x%x"
+    "\n %B.flsh.help()"
+    "\n %B.flsh.print"
+    "\n %B.flsh.read addr len"
+    "\n %B.flsh.write addr x0 x1 x2 x3 x4 x5 x6 x7"
+    "\n %B.flsh.write addr x0 x1 x2 x3 x4 x5 x6"
+    "\n %B.flsh.write addr x0"
     "\n"
 };
 
@@ -51,9 +53,14 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
         stmFlsh_print(xprint);
         return 1;
     }
+    else if(strncmp(CMD, "flsh.format", strlen("flsh.format")) == 0){
+        stmFlsh_format();
+        xprint("+ok@flsh.format\r\n");
+        return 1;
+    }
     else if(sscanf(line, "flsh.read %d %d", &i, &j)==2){
         if(stmFlsh_read(i, buff, (j<=32?j:32)) == 0){
-            xprint("+ok@flsh.read %d %d\r\n");
+            xprint("+ok@flsh.read %d %d\r\n",i,j);
             for(i=0;i<j;i++){
                 xprint("%02x ", buff[i]);
                 if(i%16==15){

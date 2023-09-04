@@ -34,8 +34,8 @@ void TMC2160A_dev_Setup(
     SPI_HandleTypeDef* hspi, 
     u8 ch,
     u16 ioBase,
-    s8 (*ioWrite)(u16 addr, const u8 *pDat, u16 nBytes),
-    s8 (*ioRead)(u16 addr, u8 *pDat, u16 nBytes)
+    s32 (*ioWrite)(u16 addr, const u8 *pDat, u16 nBytes),
+    s32 (*ioRead)(u16 addr, u8 *pDat, u16 nBytes)
 ){
     memset(d,0,sizeof(TMC2160A_dev_t));
     TMC2160A_rsrc_t* r = &d->rsrc;

@@ -29,11 +29,16 @@ s32 ioReadReg(u16 addr, s32* val);
 
 s32 usrWrite(u16 addr, const u8 *pDat, u16 nBytes);
 s32 usrRead(u16 addr, u8 *pDat, u16 nBytes);
+
 // user IO ROM defines
-#define USR_ADC_BYTES   ((4*8)+2)
+#define USR_ADC_BYTES   (64)
+#define USR_2160_BYTES  (64)
+#define USR_UI_BYTES    (64)
 
-#define USR_ADC_BASE    0
-
+#define USR_ADC_BASE        (0)
+#define USR_2160_0_BASE     (USR_ADC_BASE + USR_ADC_BYTES)
+#define USR_2160_1_BASE     (USR_2160_0_BASE + USR_2160_BYTES)
+#define USR_UI_BASE         (USR_2160_1_BASE + USR_2160_BYTES)
 
 void disk_setup(IO_Read rdMethod, IO_Write wrtMethod);
 
