@@ -13,6 +13,12 @@ filename: ui_common.h
 #define UI_MAX_EVENT        4    // 最大回调事件函数的数量
 #define UI_EVNT_NAME_LEN    10    // 事件名称最长8个字节
 
+#define UI_ATTR_TXT     ("txt")
+#define UI_ATTR_VAL     ("val")
+
+
+
+
 #define COLOR_BACKGROUND    ("61277")     // background color
 #define COLOR_RED           ("63488")     // red color
 #define COLOR_GREEN         ("2016")      // green color

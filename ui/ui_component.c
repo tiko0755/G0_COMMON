@@ -17,7 +17,7 @@ filename: ui_component.c
 **********************************************************/
 // pgMain.tbStatus
 static u8 uiComponent_cmd(uiComponent_rsrc_t*, const char* MSG);
-static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char* FORMAT, ...);
+static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char* VAL);
 static s8 uiComponent_bind(uiComponent_rsrc_t *, const char* EVNT, uiCB cb);
 static void uiComponent_setup(
     void *p,
@@ -75,7 +75,7 @@ uiComponentNode* uiComponentInsert(uiComponentNode** head,
 }
 
 static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
-    s32 i,j,val;
+    s32 i,val;
     char str[UI_TEXT_MAX_LEN] = {0};
     const char* msg;
     i = strlen(rsrc->name);
@@ -121,29 +121,20 @@ static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
     return 0;
 }
 
-static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char* FORMAT, ...){
-    va_list ap;
-    char buf[UI_TEXT_MAX_LEN] = {0};
-    s16 bytes;
-    //take string
-    va_start(ap, FORMAT);
-    bytes = vsnprintf(buf, UI_TEXT_MAX_LEN, FORMAT, ap);
-    va_end(ap);
-    //send out
-    if(bytes>=0){
-        if(strncmp(attr,"txt",strlen("txt")) == 0){
-            if(rsrc->txt){
-                rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, buf);
-                memset(rsrc->txt,0,rsrc->txtSz);
-                strcpy(rsrc->txt, buf);            
-            }
+static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char* VAL){
+//    log("<%s bytes:%d buf:%s >", __func__, bytes, buf);
+    if(strncmp(attr,UI_ATTR_TXT,strlen(UI_ATTR_TXT)) == 0){
+        if(rsrc->txt){
+            rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, VAL);
+            log("<%s %s.%s.%s=\"%s\">", __func__, rsrc->parentsName, rsrc->name, attr, VAL);
+            memset(rsrc->txt,0,rsrc->txtSz);
+            strcpy(rsrc->txt, VAL);
         }
-        else{
-            rsrc->uiPrint("%s.%s.%s=%s", rsrc->parentsName, rsrc->name, attr, buf);
-        }
-        return 0;
     }
-    else{    return -1;    }
+    else{
+        rsrc->uiPrint("%s.%s.%s=%s", rsrc->parentsName, rsrc->name, attr, VAL);
+    }
+    return 0;
 }
 
 static s8 uiComponent_bind(uiComponent_rsrc_t *rsrc, const char* EVNT, uiCB cb){

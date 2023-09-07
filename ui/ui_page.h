@@ -30,7 +30,6 @@ typedef struct{
 
     s8 (*Set)(uiPageRsrc_t*, const char* COMPONENT, const char* ATTR, const char* VAL);
     s8 (*get)(uiPageRsrc_t*, const char* attr);
-
 }uiPage_t;
 
 typedef struct uiPageNode{

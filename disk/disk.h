@@ -32,8 +32,8 @@ s32 usrRead(u16 addr, u8 *pDat, u16 nBytes);
 
 // user IO ROM defines
 #define USR_ADC_BYTES   (64)
-#define USR_2160_BYTES  (64)
-#define USR_UI_BYTES    (64)
+#define USR_2160_BYTES  (128)
+#define USR_UI_BYTES    (256)
 
 #define USR_ADC_BASE        (0)
 #define USR_2160_0_BASE     (USR_ADC_BASE + USR_ADC_BYTES)

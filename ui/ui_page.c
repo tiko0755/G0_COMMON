@@ -116,10 +116,10 @@ static uiComponent_t* uiPage_getComponent(uiPageRsrc_t *r, const char* NAME){
 
 
 static s8 uiPageSet(uiPageRsrc_t *r, const char* COMPONENT, const char* ATTR, const char* VAL){
-    uiComponentNode *picNode;
-    for(picNode=r->componentLst; picNode!=NULL; picNode=picNode->nxt){
-        if(strncmp(picNode->obj.rsrc.name, COMPONENT, strlen(COMPONENT)) == 0){
-            if(picNode->obj.set(&picNode->obj.rsrc, ATTR, VAL) == 0){    return 0;    }
+    uiComponentNode *componentNode;
+    for(componentNode=r->componentLst; componentNode!=NULL; componentNode=componentNode->nxt){
+        if(strncmp(componentNode->obj.rsrc.name, COMPONENT, strlen(COMPONENT)) == 0){
+            if(componentNode->obj.set(&componentNode->obj.rsrc, ATTR, VAL) == 0){    return 0;    }
             return -2;
         }
     }

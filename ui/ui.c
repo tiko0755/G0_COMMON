@@ -31,7 +31,6 @@ static s8 uiBind(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char*
 static uiPageNode* uiGetPageNode(uiRsrc_T *r, const char* PAGE);
 static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout);
 
-
 /**********************************************************
  Public function
 **********************************************************/
@@ -51,7 +50,8 @@ void uiSetup(
     pd->Set = uiSet;
     pd->Bind = uiBind;
     pd->NewPage = uiNewPage;
-
+    pd->PlaceComponent = uiPlaceComponent;
+    pd->GetComponent = uiGetComponent;
     pd->Visual = uiVisual;
     
     pr->pUartDev->StartRcv(&pr->pUartDev->rsrc);

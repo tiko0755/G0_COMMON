@@ -34,6 +34,9 @@ typedef struct{
     s8 (*Get)(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* ATTR);
     s8 (*Visual)(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis);
 
+//    s8 (*SetX)(uiRsrc_T*, const char* COMPONENT, const char* ATTR, const char* FORMAT_ORG, ...);
+
+    
     uiComponent_t* (*GetComponent)(uiRsrc_T*,  const char* PAGE_NAME, const char* COMPONENT_NAME);
 //    textboxPic_t* (*GetTxtBxPic)(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_NAME);
 //    pic_t* (*GetPic)(uiRsrc_T*, const char* PAGE_NAME, const char* COMPONENT_NAME);
@@ -49,5 +52,5 @@ void uiSetup(
     UartDev_t* uartDev,
     void (*printLCD)(const char* FORMAT_ORG, ...)
 );
-
+    
 #endif

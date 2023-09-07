@@ -27,7 +27,7 @@ typedef struct{
 typedef struct{
     uiComponent_rsrc_t rsrc;
     u8 (*cmd)(uiComponent_rsrc_t*, const char* MSG);
-    s8 (*set)(uiComponent_rsrc_t*, const char* attr, const char* FORMAT, ...);
+    s8 (*set)(uiComponent_rsrc_t*, const char* attr, const char* VAL);
     s8 (*get)(uiComponent_rsrc_t*, const char* attr);
     s8 (*bind)(uiComponent_rsrc_t*, const char* EVNT, uiCB);
 }uiComponent_t;
