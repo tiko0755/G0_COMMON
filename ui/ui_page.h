@@ -44,9 +44,4 @@ void uiPageSetup(
     void (*printLCD)(const char* FORMAT_ORG, ...)
 );
 
-uiPageNode* uiPageListInsert(uiPageNode** head,
-    const char* NAME,
-    void (*printLCD)(const char* FORMAT_ORG, ...)
-);
-
 #endif

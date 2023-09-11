@@ -36,6 +36,7 @@ void uiPageSetup(
 
     strcpy(d->rsrc.name, NAME);
     d->rsrc.uiPrint = printLCD;
+//    log("<%s 0x%08x >", d->rsrc.name, (u32)d->rsrc.name);
 
     d->cmd = uiPage_cmd;
     d->setBColor = uiPage_setColor;
@@ -47,35 +48,13 @@ void uiPageSetup(
     
 }
 
-uiPageNode* uiPageListInsert(uiPageNode** head,
-    const char* NAME,
-    void (*printLCD)(const char* FORMAT_ORG, ...)
-){
-    uiPageNode* newnode = (uiPageNode*)malloc(sizeof(uiPageNode));
-    if(newnode == NULL)    return NULL;
-
-    memset(newnode,0,sizeof(uiPageNode));
-    uiPageSetup(&newnode->obj, NAME, printLCD);
-
-    if (*head == NULL)
-    {
-        *head = newnode;
-        return newnode;
-    }
-    uiPageNode* tail = *head;
-    while (tail->nxt != NULL)
-    {
-        tail = tail->nxt;
-    }
-    tail->nxt = newnode;
-    return newnode;
-}
-
 static u8 uiPage_cmd(uiPageRsrc_t* rsrc, const char* MSG){
+//    log("<%s MSG:%s >", __func__, MSG);
     uiComponentNode *curComponentNode;
     const char* msg;
     if(strncmp(MSG, rsrc->name, strlen(rsrc->name)) != 0)    return 0;
     msg = &MSG[strlen(rsrc->name)+1];    // take component name, do not include '.'
+//    log("<%s msg:%s >", __func__, msg);
     for(curComponentNode=rsrc->componentLst; curComponentNode!=NULL; curComponentNode=curComponentNode->nxt){
         if(curComponentNode->obj.cmd(&curComponentNode->obj.rsrc, msg))    return 1;
     }

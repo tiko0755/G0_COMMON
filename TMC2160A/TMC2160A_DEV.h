@@ -28,8 +28,8 @@ typedef struct{
     uint32_t ch;
     // eeprom
     u16 ioBase;
-    s8 (*ioWrite)(u16 addr, const u8 *pDat, u16 nBytes);
-    s8 (*ioRead)(u16 addr, u8 *pDat, u16 nBytes);
+    s32 (*ioWrite)(u16 addr, const u8 *pDat, u16 nBytes);
+    s32 (*ioRead)(u16 addr, u8 *pDat, u16 nBytes);
     // local var
     u16 mA;
     u16 mStep;

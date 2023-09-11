@@ -10,6 +10,7 @@ filename: ui_component.c
 #include <string.h>
 #include "ui_component.h"
 
+#include "thread_delay.h"
 #include "user_log.h"
 
 /**********************************************************
@@ -54,6 +55,7 @@ uiComponentNode* uiComponentInsert(uiComponentNode** head,
     const char* NAME,
     void (*printLCD)(const char* FORMAT_ORG, ...)
 ){
+//    log("<%s parentsName:0x%08x >", __func__, (u32)parentsName);
     uiComponentNode* newnode = (uiComponentNode*)malloc(sizeof(uiComponentNode));
     if(newnode == NULL)    return NULL;
 
@@ -75,14 +77,18 @@ uiComponentNode* uiComponentInsert(uiComponentNode** head,
 }
 
 static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
+//    log("<%s MSG:%s name:%s >", __func__, MSG, rsrc->name);
     s32 i,val;
     char str[UI_TEXT_MAX_LEN] = {0};
     const char* msg;
+
     i = strlen(rsrc->name);
     if(i>0 && strncmp(MSG, rsrc->name, i) != 0){
+//        log("</%s strncmp >", __func__);
         return 0;
     }
     msg = &MSG[i+1];
+//    log("<%s i:%d msg:%s >", __func__, i, msg);
 
     if(sscanf(msg, UI_EVNT_EDIT_NUM, &val) == 1){
         for(i=0;i<UI_MAX_EVENT;i++){
@@ -90,6 +96,7 @@ static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
                 if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, val);    }
             }
         }
+//        log("</%s UI_EVNT_EDIT_NUM >", __func__);
         return 1;
     }
     else if(sscanf(msg, UI_EVNT_EDIT_STR, str) == 1){
@@ -98,6 +105,7 @@ static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
                 if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, str);    }
             }
         }
+//        log("</%s UI_EVNT_EDIT_STR >", __func__);
         return 1;
     }
     else if(strncmp(msg, UI_EVNT_CLICK, strlen(UI_EVNT_CLICK)) == 0){
@@ -107,6 +115,7 @@ static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
                 if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, msg);    }
             }
         }
+//        log("</%s UI_EVNT_CLICK >", __func__);
         return 1;
     }
     else if(strncmp(msg, UI_EVNT_DCLICK, strlen(UI_EVNT_DCLICK)) == 0){
@@ -116,17 +125,19 @@ static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
                 if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, msg);    }
             }
         }
+//        log("</%s UI_EVNT_DCLICK >", __func__);
         return 1;
     }
+//    log("</%s >", __func__);
     return 0;
 }
 
 static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char* VAL){
-//    log("<%s bytes:%d buf:%s >", __func__, bytes, buf);
+//    log("<%s attr:%s VAL:%s >", __func__, attr, VAL);
+    thread_delay(500);
     if(strncmp(attr,UI_ATTR_TXT,strlen(UI_ATTR_TXT)) == 0){
+        rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, VAL);
         if(rsrc->txt){
-            rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, VAL);
-            log("<%s %s.%s.%s=\"%s\">", __func__, rsrc->parentsName, rsrc->name, attr, VAL);
             memset(rsrc->txt,0,rsrc->txtSz);
             strcpy(rsrc->txt, VAL);
         }
@@ -134,6 +145,7 @@ static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char
     else{
         rsrc->uiPrint("%s.%s.%s=%s", rsrc->parentsName, rsrc->name, attr, VAL);
     }
+//    log("</%s >", __func__);
     return 0;
 }
 

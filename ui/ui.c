@@ -41,6 +41,8 @@ void uiSetup(
 ){
     uiDev_T* pd = (uiDev_T*)pDev;
     uiRsrc_T* pr = &pd->rsrc;
+    memset(pd, 0, sizeof(uiDev_T));
+    
     pr->pUartDev = uartD;
     pr->uiPrint = printLCD;
     pr->hasLoaded = 0;
@@ -69,6 +71,7 @@ static uiPage_t* uiNewPage(uiRsrc_T *rsrc, const char* NAME){
     if (rsrc->pageLst == NULL)
     {
         rsrc->pageLst = newnode;
+        rsrc->pageLst->nxt = NULL;
         return &newnode->obj;
     }
     uiPageNode* tail = rsrc->pageLst;
@@ -115,7 +118,7 @@ static void uiPolling(uiRsrc_T* rsrc, u16 tick){
     rsrc->tick += tick;
     if(rsrc->tick < 32){    return;        }
     rsrc->tick = 0;
-        
+
     if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
         log("<%s buff:%s >", __func__, buff);
         if(strncmp(buff, "lcd.start", strlen("lcd.start")) == 0){

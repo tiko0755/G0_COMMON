@@ -33,6 +33,8 @@ const char RAMP_HELP[] = {
     "\n .%dev.info()"
     "\n .%dev.default()"
     "\n .%dev.spd(min,max)/()"
+    "\n .%dev.is_sheltered()"
+    
     "\n"
 };
 
