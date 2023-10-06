@@ -25,6 +25,7 @@ static uiComponent_t* uiPlaceComponent(uiRsrc_T*, const char* PAGE, const char* 
 
 static void uiPolling(uiRsrc_T* r, u16 tick);
 static s8 uiVisual(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis);
+static s8 uiPage(uiRsrc_T*, const char* PAGE);
 static s8 uiSet(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* ATTR, const char* FORMAT_ORG, ...);
 static s8 uiGet(uiRsrc_T*, const char* PAGE, const char* COMPONENT, char* ATTR);
 static s8 uiBind(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* EVENT, uiCB cb);
@@ -49,6 +50,7 @@ void uiSetup(
 
     pd->Polling = uiPolling;
     // component setup
+    pd->Page = uiPage;
     pd->Set = uiSet;
     pd->Bind = uiBind;
     pd->NewPage = uiNewPage;
@@ -153,6 +155,11 @@ static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout){
     return -1;
 }
 
+static s8 uiPage(uiRsrc_T* r, const char* PAGE){
+    r->uiPrint("page %s", PAGE);
+    return 0;
+}
+
 static s8 uiSet(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, const char* ATTR, const char* FORMAT_ORG, ...){
     uiPageNode* pgNode;
     va_list ap;
@@ -162,7 +169,9 @@ static s8 uiSet(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, const char
     va_start(ap, FORMAT_ORG);
     bytes = vsnprintf(buf, UI_TEXT_MAX_LEN, FORMAT_ORG, ap);
     va_end(ap);
-    if(bytes < 0){    return -1;    }
+    if(bytes < 0){ 
+        return -1;  
+    }
 
     for(pgNode=r->pageLst; pgNode != NULL; pgNode=pgNode->nxt)
     {

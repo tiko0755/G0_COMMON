@@ -94,7 +94,7 @@ int32_t stmFlsh_write(uint16_t addr, const uint8_t *pDat, uint16_t nBytes){
         
         if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_DOUBLEWORD, ix, x) != HAL_OK){
             log("<%s error ix:%08x \tx:0x%016x >", __func__, ix, x);
-            return -2;
+            return -1;
         }
 
     }

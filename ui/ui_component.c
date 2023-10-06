@@ -134,7 +134,6 @@ static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
 
 static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char* VAL){
 //    log("<%s attr:%s VAL:%s >", __func__, attr, VAL);
-    thread_delay(500);
     if(strncmp(attr,UI_ATTR_TXT,strlen(UI_ATTR_TXT)) == 0){
         rsrc->uiPrint("%s.%s.%s=\"%s\"", rsrc->parentsName, rsrc->name, attr, VAL);
         if(rsrc->txt){
@@ -143,6 +142,7 @@ static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char
         }
     }
     else{
+//        log("%s.%s.%s=%s", rsrc->parentsName, rsrc->name, attr, VAL);
         rsrc->uiPrint("%s.%s.%s=%s", rsrc->parentsName, rsrc->name, attr, VAL);
     }
 //    log("</%s >", __func__);

@@ -29,7 +29,8 @@ typedef struct{
     uiPage_t* (*NewPage)(uiRsrc_T *rsrc, const char* NAME);
     // place component
     uiComponent_t* (*PlaceComponent)(uiRsrc_T*, const char* PAGE, const char* COMPONENT, u8 txtLen);
-
+    
+    s8 (*Page)(uiRsrc_T*, const char* PAGE);
     s8 (*Set)(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* ATTR, const char* FORMAT_ORG, ...);
     s8 (*Get)(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* ATTR);
     s8 (*Visual)(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis);

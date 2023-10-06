@@ -115,13 +115,19 @@ s32 ioWriteReg(u16 addr, s32 val){
 }
 
 s32 usrWrite(u16 addr, const u8 *pDat, u16 nBytes){
-	if(addr >= ROM_SZ_BYTES_USR){	return 	ROM_SZ_BYTES_USR;	}
+	if(addr >= ROM_SZ_BYTES_USR){	
+        log("<%s err:addr_overflow >", __func__);
+        return 	-1;	
+    }
 	disk_ioWrite(ROM_BASE_USER + addr, pDat, nBytes);
 	return 0;
 }
 
 s32 usrRead(u16 addr, u8 *pDat, u16 nBytes){
-	if(addr >= (ROM_SZ_BYTES_USR/4)){	return 	ROM_SZ_BYTES_USR;	}
+	if(addr >= ROM_SZ_BYTES_USR){	
+        log("<%s err:addr_overflow >", __func__);
+        return 	-1;	
+    }
 	disk_ioRead(ROM_BASE_USER + addr, pDat, nBytes);
 	return 0;
 }
