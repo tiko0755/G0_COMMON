@@ -34,9 +34,11 @@
  * GLOBAL FUNCTION DECLARATION
  *****************************************************************************************
  */
- 
-void thread_delay_init(appTmrDev_t* tmr);
-void thread_delay(uint16_t ms);
+extern uint32_t thrd_en;
+extern uint32_t thrd_tick[THREAD_DELAY_COUNT];
+
+void thread_delay_init(appTmrDev_t* ptmr);
+void thread_delay(uint32_t ms);
 
 #endif
 

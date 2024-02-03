@@ -70,13 +70,23 @@ u8 tmc2160aCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORM
             xprint("+ok@%d.%s.regwrite(0x%02x,0x%02x,0x%02x%02x%02x%02x)\r\n", brdAddr, r->name, i&0xff,
                 buff[0],buff[1],buff[2],buff[3],buff[4]);
     }
+    else if(sscanf(line, "regwrite 0x%x %d", &i,&j)==2){
+            memset(buff,0,5);
+            buff[0] = 0x80|(i&0xff);
+            buff[4] = j&0xff;    j>>=8;
+            buff[3] = j&0xff;    j>>=8;
+            buff[2] = j&0xff;    j>>=8;
+            buff[1] = j&0xff;
+            d->readWriteArray(r, buff, 5);
+            xprint("+ok@%d.%s.regwrite(0x%02x,0x%02x,0x%02x%02x%02x%02x)\r\n", brdAddr, r->name, i&0xff,
+                buff[0],buff[1],buff[2],buff[3],buff[4]);
+    }
         
     //.help()
     else if(strncmp(line, "help", strlen("help")) == 0){
         xprint("%s", TMC2160A_HELP);
         xprint("+ok@%d.%s.help()\r\n%s", brdAddr, r->name);
     }
-
 
     else{
         xprint("+unknown@%s", CMD);

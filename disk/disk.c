@@ -2,6 +2,7 @@
 #include <string.h>
 #include "user_log.h"
 #include "CRC16.h"
+#include "thread_delay.h"
 
 //u8 boardAddr = 0;
 //u8 baudHost = 4;        // BAUD[4]=115200
@@ -28,73 +29,33 @@ void disk_setup(IO_Read rdMethod, IO_Write wrtMethod){
     disk_ioRead = rdMethod;
 }
 
-//static s8 configWrite(void){
-////    u8 buff[32]={0};
-////    buff[14] = g_baudHost;
-////    buff[15] = g_baud485;
-////    buff[16] = HAL_GetTick()&0xff;            // mac[3]
-////    buff[17] = (HAL_GetTick()>>8)&0xff;        // mac[4]
-////    buff[18] = (HAL_GetTick()>>16)&0xff;    // mac[5]
-////    buff[31] = 0xaa;
-////    erom.Write(&erom.rsrc, EEPROM_BASE_NET, buff, 32);
-//    return 0;
-//}
-
-//static s8 configRead(void){
-////    u8 buff[32] = {0};
-////    erom.Read(&erom.rsrc, EEPROM_BASE_NET, buff, 32);
-////    if(buff[31] == 0xaa){
-////        g_baudHost = buff[14];
-////        g_baud485 = buff[15];
-
-////        if(g_baudHost >= 7)    g_baudHost = 4;    // 4@115200
-////        if(g_baud485 >= 7)     g_baud485 = 4;    // 4@115200
-////    }
-//    return 0;
-//}
-
-
 s32 configWrite(void){
-//	u8 buff[16]={0};
-//	u16 sum = 0,i;
-//	buff[0] = baudHost;
-//	buff[1] = baud485;
-//	buff[2] = boardAddr;
-//	buff[3] = boardAddr>>8;
-//	buff[4] = boardMux;
-//	for(i=0;i<14;i++){	sum += buff[i];	}
-//	buff[14] = sum;
-//	buff[15] = sum>>8;
-	disk_ioWrite(ROM_BASE_CFG, (u8*)&conf, sizeof(CONF_T));
+	u16 chk;
+    chk = CRC16((u8*)&conf, sizeof(CONF_T), CRC_INIT);
+    disk_ioWrite(ROM_BASE_CFG+0, (u8*)&chk, 2);
+    thread_delay(5);
+	disk_ioWrite(ROM_BASE_CFG+2, (u8*)&conf, sizeof(CONF_T));
 	return 0;
 }
 
 s32 configRead(void){
 	u8 buff[16] = {0};
-	u16 sum,checkcode,i;
+	u16 sum,chk0,chk1,i;
 
-    disk_ioRead(ROM_BASE_CFG, (u8*)&conf, sizeof(CONF_T));
+    disk_ioRead(ROM_BASE_CFG+0, (u8*)&chk0, 2);
+    disk_ioRead(ROM_BASE_CFG+2, (u8*)&conf, sizeof(CONF_T));
+    chk1 = CRC16((u8*)&conf, sizeof(CONF_T), CRC_INIT);
     
-//	for(i=0,sum=0;i<14;i++){	sum += buff[i];	}
-//	checkcode = buff[15];	checkcode <<= 8;
-//	checkcode |= buff[14];
-
-
-//    if(sum == checkcode){
-//        baudHost = buff[0];
-//        baud485 = buff[1];
-//        if(baudHost >= 7)     baudHost = 2;    // 2@115200
-//        if(baud485 >= 7)     baud485 = 2;    // 2@115200
-//        boardAddr = buff[3];    boardAddr <<= 8;
-//        boardAddr |= buff[2];
-//        boardMux = buff[4];
-//    }
-//    else{
-//        baudHost = 2;    // 2@115200
-//        baud485 = 2;    // 2@115200
-//        boardAddr = 0;
-//        boardMux = 0;
-//    }
+    if(chk0 != chk1){
+        conf.baud485 = 115200;
+        conf.baudHost = 115200;
+        conf.brdAddr = 0;
+        conf.brddMux = 0;
+        conf.gw = 0;
+        conf.ip = 0;
+        conf.mac = 0;
+        configWrite();
+    }
 
     return 0;
 }

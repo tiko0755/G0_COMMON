@@ -59,19 +59,22 @@ void TMC2160A_dev_Setup(
     HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_SET);
     tmc2160_init(&r->obj, ch, &r->conf, tmc2160_defaultRegisterResetState);
     
-    //#define R10 0x00070A03  // IHOLD_IRUN
-    //#define R6C 0x02410153  // CHOPCONF |64mcroStep
-    //#define R70 0xC40C001E  // PWMCONF
-    //#define R11 0x0000000A  // 
-    //#define R00 0x00000004  // 
-    //#define R13 0x000001F4  //
-    
+//    tmc2160_WriteReg(r, 0x10, 0x00070A03);
+//    tmc2160_WriteReg(r, 0x6c, 0x02410153);
+//    tmc2160_WriteReg(r, 0x70, 0xC40C001E);
+//    tmc2160_WriteReg(r, 0x11, 0x0000000A);
+//    tmc2160_WriteReg(r, 0x00, 0x00000004);
+//    tmc2160_WriteReg(r, 0x13, 0x000001F4);
+
     tmc2160_WriteReg(r, 0x10, 0x00070A03);
     tmc2160_WriteReg(r, 0x6c, 0x02410153);
     tmc2160_WriteReg(r, 0x70, 0xC40C001E);
     tmc2160_WriteReg(r, 0x11, 0x0000000A);
     tmc2160_WriteReg(r, 0x00, 0x00000004);
-    tmc2160_WriteReg(r, 0x13, 0x000001F4);
+    tmc2160_WriteReg(r, 0x13, 0x000001f0);
+    tmc2160_WriteReg(r, 0x14, 0x00000100);
+    tmc2160_WriteReg(r, 0x15, 0x000000f0);
+
     tmc2160_Enable(r);
 }
 
@@ -157,11 +160,7 @@ static s32 tmc2160_ReadConf(TMC2160A_rsrc_t* r){
     return 0;
 }
 
-
-
-
 static void tmc2160_Default(TMC2160A_rsrc_t* r){
-
 }  
 
 
@@ -174,7 +173,6 @@ static void tmc2160_ReadWriteArray(TMC2160A_rsrc_t* r, uint8_t *data, size_t len
 //    print("<%s rx:0x%02x%02x%02x%02x%02x>\r\n",__func__,rxBuff[0],rxBuff[1],rxBuff[2],rxBuff[3],rxBuff[4]);
     HAL_GPIO_WritePin(r->CS->GPIOx, r->CS->GPIO_Pin, GPIO_PIN_SET);
 }
-
 
 /**********************************************************
  == THE END ==

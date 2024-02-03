@@ -80,10 +80,10 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
             buff[j] = x[j];
         }
         if(stmFlsh_write(i, buff, 8) == 0){
-            xprint("+ok@flsh.write %d %d %d %d %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7]);
+            xprint("+ok@flsh.write %d %d %d %d %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7]);
         }
         else{
-            xprint("+err@flsh.write %d %d %d %d %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7]);
+            xprint("+err@flsh.write %d %d %d %d %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3],x[4],x[5],x[6],x[7]);
         }
         return 1;
     }
@@ -92,10 +92,10 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
             buff[j] = x[j];
         }
         if(stmFlsh_write(i, buff, 7) == 0){
-            xprint("+ok@flsh.write %d %d %d %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3],x[4],x[5],x[6]);
+            xprint("+ok@flsh.write %d %d %d %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3],x[4],x[5],x[6]);
         }
         else{
-            xprint("+err@flsh.write %d %d %d %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3],x[4],x[5],x[6]);
+            xprint("+err@flsh.write %d %d %d %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3],x[4],x[5],x[6]);
         }
         return 1;
     }
@@ -104,10 +104,10 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
             buff[j] = x[j];
         }
         if(stmFlsh_write(i, buff, 6) == 0){
-            xprint("+ok@flsh.write %d %d %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3],x[4],x[5]);
+            xprint("+ok@flsh.write %d %d %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3],x[4],x[5]);
         }
         else{
-            xprint("+err@flsh.write %d %d %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3],x[4],x[5]);
+            xprint("+err@flsh.write %d %d %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3],x[4],x[5]);
         }
         return 1;
     }
@@ -116,10 +116,10 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
             buff[j] = x[j];
         }
         if(stmFlsh_write(i, buff, 5) == 0){
-            xprint("+ok@flsh.write %d %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3],x[4]);
+            xprint("+ok@flsh.write %d %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3],x[4]);
         }
         else{
-            xprint("+err@flsh.write %d %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3],x[4]);
+            xprint("+err@flsh.write %d %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3],x[4]);
         }
         return 1;
     }
@@ -128,10 +128,10 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
             buff[j] = x[j];
         }
         if(stmFlsh_write(i, buff, 4) == 0){
-            xprint("+ok@flsh.write %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3]);
+            xprint("+ok@flsh.write %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3]);
         }
         else{
-            xprint("+err@flsh.write %d %d %d %d %d\r\n", &i,x[0],x[1],x[2],x[3]);
+            xprint("+err@flsh.write %d %d %d %d %d\r\n", i,x[0],x[1],x[2],x[3]);
         }
         return 1;
     }
@@ -140,10 +140,10 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
             buff[j] = x[j];
         }
         if(stmFlsh_write(i, buff, 3) == 0){
-            xprint("+ok@flsh.write %d %d %d %d\r\n", &i,x[0],x[1],x[2]);
+            xprint("+ok@flsh.write %d %d %d %d\r\n", i,x[0],x[1],x[2]);
         }
         else{
-            xprint("+err@flsh.write %d %d %d %d\r\n", &i,x[0],x[1],x[2]);
+            xprint("+err@flsh.write %d %d %d %d\r\n", i,x[0],x[1],x[2]);
         }
         return 1;
     }
@@ -152,10 +152,10 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
             buff[j] = x[j];
         }
         if(stmFlsh_write(i, buff, 2) == 0){
-            xprint("+ok@flsh.write %d %d %d\r\n", &i,x[0],x[1]);
+            xprint("+ok@flsh.write %d %d %d\r\n", i,x[0],x[1]);
         }
         else{
-            xprint("+err@flsh.write %d %d %d\r\n", &i,x[0],x[1]);
+            xprint("+err@flsh.write %d %d %d\r\n", i,x[0],x[1]);
         }
         return 1;
     }
@@ -164,16 +164,13 @@ u8 stmFlsh_Cmd(void *p, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
             buff[j] = x[j];
         }
         if(stmFlsh_write(i, buff, 1) == 0){
-            xprint("+ok@flsh.write %d %d\r\n", &i,x[0]);
+            xprint("+ok@flsh.write %d %d\r\n", i,x[0]);
         }
         else{
-            xprint("+err@flsh.write %d %d\r\n", &i,x[0]);
+            xprint("+err@flsh.write %d %d\r\n", i,x[0]);
         }
         return 1;
     }
-    
-
-    
 
 //    else{
 //        xprint("+unknown@%s", CMD);

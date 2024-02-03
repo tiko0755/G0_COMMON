@@ -14,7 +14,7 @@ filename: misc.h
 #define MAX_TASK            64
 #define MAX_INSTANCE        16
 #define MAX_LINE_SYMBOL_LEN     (8)
-
+#define CRC_INIT            (0xacca)
 
 #define    BIT(n)    ((u32)1<<n)
 #define    BIT_LEN(n)    (0XFFFFFFFF>>(32-n))
@@ -32,6 +32,7 @@ filename: misc.h
 typedef enum{DEV_ERROR = 0, DEV_SUCCESS = !DEV_ERROR}    DEV_STATUS;
 typedef enum{FALSE = 0, TRUE = !FALSE}    Bool;
 typedef enum{NONE_BLOCKING = 0, BLOCKING,} TRANSFER_BLOCK_T;
+
 /*****************************************************************************
  @ typedefs
 ****************************************************************************/
@@ -49,10 +50,10 @@ typedef struct {
     u32 mac;
     u32 ip;
     u32 gw;
-    u8 boardAddr;
-    u8 baudHost;
-    u8 baud485;
-    u8 boardMux;
+    u32 baudHost;
+    u32 baud485;
+    u8 brdAddr;
+    u8 brddMux;
 } CONF_T;
 
 typedef struct {
@@ -83,6 +84,12 @@ typedef struct {
     u16 gainDiv;
     s16 offset;
 }CAL32_T;
+
+typedef struct {
+    s32 gainMul;
+    s32 gainDiv;
+    s32 offset;
+}cal32_t;
 
 typedef struct {
     const char *KeyStr;

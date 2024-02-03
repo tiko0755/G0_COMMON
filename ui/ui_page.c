@@ -45,7 +45,6 @@ void uiPageSetup(
     
     d->placeComponent = uiPage_placeComponent;
     d->getComponent = uiPage_getComponent;
-    
 }
 
 static u8 uiPage_cmd(uiPageRsrc_t* rsrc, const char* MSG){
@@ -56,9 +55,9 @@ static u8 uiPage_cmd(uiPageRsrc_t* rsrc, const char* MSG){
     msg = &MSG[strlen(rsrc->name)+1];    // take component name, do not include '.'
 //    log("<%s msg:%s >", __func__, msg);
     for(curComponentNode=rsrc->componentLst; curComponentNode!=NULL; curComponentNode=curComponentNode->nxt){
-        if(curComponentNode->obj.cmd(&curComponentNode->obj.rsrc, msg))    return 1;
+        if(curComponentNode->obj.cmd(&curComponentNode->obj.rsrc, msg) > 0)    return 1;
     }
-    return 0;
+    return 1;
 }
 
 static void uiPage_setColor(uiPageRsrc_t* rsrc, u16 color){
@@ -72,7 +71,7 @@ static uiComponent_t* uiPage_placeComponent(uiPageRsrc_t *r, const char* NAME, u
     char* txt = NULL;
     if(txtMax){
         txt = (char*)malloc(sizeof(txtMax));
-        if(txt == NULL)    return NULL;    
+        if(txt == NULL)    return NULL;
     }
     
     uiComponentNode* p = uiComponentInsert(&r->componentLst, r->name, NAME, r->uiPrint);

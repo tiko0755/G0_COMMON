@@ -24,7 +24,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 
-static u8 rs485RxMonitor(Rs485Rsrc_t *pRsrc);
+//static u8 rs485RxMonitor(Rs485Rsrc_t *pRsrc);
 static u16 rs485RxFetchFrame(Rs485Rsrc_t *pRsrc, u8* frame, u16 frameLen);
 static void rs485TxPolling(Rs485Rsrc_t *pRsrc);
 static u16 rs485TxSend(Rs485Rsrc_t *pRsrc, const u8* BUF, u16 len);
@@ -41,12 +41,12 @@ static void rs485TxSendString(Rs485Rsrc_t *pRsrc, const char* FORMAT_ORG, ...);
 void setupRs485Dev(
     Rs485Dev_t *pDev,
     UART_HandleTypeDef* huart,
-		appTmrDev_t* tObj,
+    appTmrDev_t* tObj,
     u8* txPool, u16 txPoolLen,
     u8* rxPool,    u16    rxPoolLen,
     u8* rxDoubleBuff,    u16 rxBufLen, u16 rxPollingTim,
-    const PIN_T DE,
-    const PIN_T DET,
+    const PIN_T* DE,
+    const PIN_T* DET,
     s8 (*beforeSend)(void),
     s8 (*afterSend)(UART_HandleTypeDef *huart)
 ){
@@ -56,7 +56,7 @@ void setupRs485Dev(
 
     pRsrc->DE = DE;
     pRsrc->DET = DET;
-    HAL_GPIO_WritePin(pRsrc->DE.GPIOx, pRsrc->DE.GPIO_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(pRsrc->DE->GPIOx, pRsrc->DE->GPIO_Pin, GPIO_PIN_SET);
     
     setupUartDev(&pRsrc->uartdev, huart, tObj,
         txPool, txPoolLen,
@@ -66,12 +66,11 @@ void setupRs485Dev(
     pRsrc->uartdev.rsrc.beforeSend = beforeSend;
     pRsrc->uartdev.rsrc.afterSend = afterSend;
     
-    pDev->RxPolling = rs485RxMonitor;
+//    pDev->RxPolling = rs485RxMonitor;
     pDev->RxFetchFrame = rs485RxFetchFrame;
     pDev->Send = rs485TxSend;
     pDev->SendStr = rs485TxSendString;
-    pDev->TxPolling = rs485TxPolling;
-
+//    pDev->TxPolling = rs485TxPolling;
 }
 
 static u16 rs485TxSend(Rs485Rsrc_t *pRsrc, const u8* BUF, u16 len){
@@ -96,13 +95,13 @@ static void rs485TxSendString(Rs485Rsrc_t *pRsrc, const char* FORMAT_ORG, ...){
     pUartDev->TxSendFrame(&pUartDev->rsrc, (u8*)buff, bytes);
 }
 
-static u8 rs485RxMonitor(Rs485Rsrc_t *pRsrc){
-    return (pRsrc->uartdev.RxPolling(&pRsrc->uartdev.rsrc));
-}
+//static u8 rs485RxMonitor(Rs485Rsrc_t *pRsrc){
+//    return (pRsrc->uartdev.RxPolling(&pRsrc->uartdev.rsrc));
+//}
 
-static void rs485TxPolling(Rs485Rsrc_t *pRsrc){
-    pRsrc->uartdev.TxPolling(&pRsrc->uartdev.rsrc);
-}
+//static void rs485TxPolling(Rs485Rsrc_t *pRsrc){
+//    pRsrc->uartdev.TxPolling(&pRsrc->uartdev.rsrc);
+//}
 
 static u16 rs485RxFetchFrame(Rs485Rsrc_t *pRsrc, u8* frame, u16 frameLen){
     return (pRsrc->uartdev.RxFetchFrame(&pRsrc->uartdev.rsrc, frame, frameLen));

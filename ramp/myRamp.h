@@ -10,7 +10,8 @@
 #define _MY_RAMP_H_
 
 #include "misc.h"
-#include "app_timer.h"
+
+#define ABSNORMAL_TIM   (2*60*1000)
 
 #define RAMP_STATUS_BIT_RUN	0
 #define RAMP_STATUS_BIT_DIR	1
@@ -18,6 +19,7 @@
 #define RAMP_STATUS_BIT_DEC	3
 #define RAMP_STATUS_BIT_REFL	4
 #define RAMP_STATUS_BIT_REFR	5
+#define RAMP_STATUS_BIT_POS_DEC 6
 
 #define	RAMP_DIR_LEFT	0
 #define	RAMP_DIR_RIGHT 	1
@@ -28,6 +30,19 @@
 
 #pragma pack(push,4)        // push current align bytes, and then set 4 bytes align
 
+
+typedef enum{
+    STOP    = 0x00,
+    SPD     = 0x01,
+    POS     = 0x02,
+} rampRunMod_t;
+
+typedef enum{
+    TAB_SIGMA202 = 0,
+    TAB_SINE64,
+    TAB_SINE128
+} rampTabIndx;
+
 typedef struct{
 	char name[DEV_NAME_LEN];
 	TIM_HandleTypeDef *htim;
@@ -36,43 +51,48 @@ typedef struct{
 	const PIN_T* REFL;
 	const PIN_T* REFR;
     
-    appTmrDev_t* tmr;
 	u16 mStep;
-
-	u16 mul;
-	u16 mulNxt;
-	u8 comp[4];
-	u8 runMod, status;
-
-	u8 dirNxt;
-
+    
+    u32 posAbsPrv;
+    
+	s32 posCur;
+	s32 posTgt;
+	s32 posTgtNxt;
+    
+    u32 pulseCount;	// pulses counter
+    u16 pulsePerSpot;	// each freqence keep pulse run
+	
 	u16 spdCur;		// current speed
 	u16 spdTgt;		// target speed
 	u16 spdTgtNxt;	// next target speed
 	u16 spdMax;
 	u16 spdMin;
+    u16 spdMod;
 
-	s32 posCur;
-	s32 posTgt;
-	s32 posTgtNxt;
 
-	u8 accLock;
+	u8 runMod, status;
 
+    u8 posSqu;
+
+	u8 dirNxt;
+	u8 tmrISR_Lock;
 	u8 squ;
-
 	u8 rampIndx;	// RAMP_TAB index
-	u16 pulsePerSpot;	// each freqence keep pulse run
-	u32 pulseCount;	// pulses counter
-	u32 pulsePerRampCycle;	//speed up to target, need pulses
-
-	u8 posReloadEn;
-
+//	u8 posReloadEn;
 	u8 isNewMul;
 	u8 isHoming;
 	u8 en;
 	u8 stopImmeditely;
 	u8 error;
     u16 tick;
+    
+    // private
+    const u8* TAB;
+    u16 tabLen;
+    rampTabIndx tabIndx;
+	u16 mul,mulNxt;
+    u16 div;
+    
 }rampRsrc_t;
 
 typedef struct{
@@ -96,7 +116,8 @@ typedef struct{
 	void (*stopSoft)(rampRsrc_t* rsrc);
 	void (*stop)(rampRsrc_t* rsrc);
 
-	void (*periodJob)(rampRsrc_t* r, u8 tick);
+    s32 (*setSpeedTab)(rampRsrc_t* r, rampTabIndx tabIdx);
+    
 	void (*testMul)(rampRsrc_t* r, u16 delta);
 	void (*test)(rampRsrc_t* r, u16 x);
 
@@ -115,8 +136,7 @@ s32 rampSetup(
 	const PIN_T* DIR,
 	const PIN_T* REFL,
 	const PIN_T* REFR,
-	u16 microStep,
-    appTmrDev_t* tmr
+	u16 microStep
 );
 
 #endif /* _MY_RAMP_H_ */

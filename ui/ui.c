@@ -23,43 +23,55 @@ static uiComponent_t* uiGetComponent(uiRsrc_T*, const char* PAGE_NAME, const cha
 
 static uiComponent_t* uiPlaceComponent(uiRsrc_T*, const char* PAGE, const char* COMPONENT, u8 txtLen);
 
-static void uiPolling(uiRsrc_T* r, u16 tick);
+static void uiPolling(void* e);
 static s8 uiVisual(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis);
+static s32 uiReset(uiRsrc_T*);
 static s8 uiPage(uiRsrc_T*, const char* PAGE);
 static s8 uiSet(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* ATTR, const char* FORMAT_ORG, ...);
 static s8 uiGet(uiRsrc_T*, const char* PAGE, const char* COMPONENT, char* ATTR);
+static s8 uiFill(uiRsrc_T *r, const char* PAGE, u16 x, u16 y, u16 w, u16 h, const char* COLOR);
+
 static s8 uiBind(uiRsrc_T*, const char* PAGE, const char* COMPONENT, const char* EVENT, uiCB cb);
 static uiPageNode* uiGetPageNode(uiRsrc_T *r, const char* PAGE);
+
 static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout);
 
+#define UI_INTERVAL    (50)
 /**********************************************************
  Public function
 **********************************************************/
 void uiSetup(
     void *pDev,
-    UartDev_t* uartD,
-    void (*printLCD)(const char* FORMAT_ORG, ...)
+    appTmrDev_t* tObj,
+    uiPrint xPrint,
+    uiFetchLine xFetchLine
 ){
     uiDev_T* pd = (uiDev_T*)pDev;
     uiRsrc_T* pr = &pd->rsrc;
     memset(pd, 0, sizeof(uiDev_T));
     
-    pr->pUartDev = uartD;
-    pr->uiPrint = printLCD;
-    pr->hasLoaded = 0;
+    pr->tObj = tObj;
+    pr->print = xPrint;
+    pr->fetch = xFetchLine;
+    pr->hasReset = 0;
 
-    pd->Polling = uiPolling;
+//    pd->Polling = uiPolling;
     // component setup
+    pd->Reset = uiReset;
     pd->Page = uiPage;
     pd->Set = uiSet;
+    pd->Fill = uiFill;
+    
     pd->Bind = uiBind;
     pd->NewPage = uiNewPage;
     pd->PlaceComponent = uiPlaceComponent;
     pd->GetComponent = uiGetComponent;
     pd->Visual = uiVisual;
     
-    pr->pUartDev->StartRcv(&pr->pUartDev->rsrc);
+    uiReset(pr);
+    pr->tObj->start(&pr->tObj->rsrc, UI_INTERVAL, POLLING_REPEAT, uiPolling, pr);
 }
+
 /**********************************************************
  read data
 **********************************************************/
@@ -68,7 +80,7 @@ static uiPage_t* uiNewPage(uiRsrc_T *rsrc, const char* NAME){
     if(newnode == NULL)    return NULL;
     memset(newnode,0,sizeof(uiPageNode));
 
-    uiPageSetup(&newnode->obj, NAME, rsrc->uiPrint);
+    uiPageSetup(&newnode->obj, NAME, rsrc->print);
 
     if (rsrc->pageLst == NULL)
     {
@@ -105,7 +117,6 @@ static uiComponent_t* uiGetComponent(uiRsrc_T* r, const char* PAGE, const char* 
     return(pgNode->obj.getComponent(&pgNode->obj.rsrc, COMPONENT));
 }
 
-
 /**********************************************************
  ui polling
 **********************************************************/
@@ -113,40 +124,35 @@ static u8 uiIsGetResp(u8* cmd, u16 len){
     return 0;
 }
 
-static void uiPolling(uiRsrc_T* rsrc, u16 tick){
+static void uiPolling(void* e){
+    uiRsrc_T* r = (uiRsrc_T*)e;
     char buff[UI_TEXT_MAX_LEN] = {0};
-    uiPageNode* pgNode;
-
-    rsrc->tick += tick;
-    if(rsrc->tick < 32){    return;        }
-    rsrc->tick = 0;
-
-    if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
+    uiPageNode* pgNode = NULL;
+    if((r->fetch!=NULL) && (r->fetch(buff, UI_TEXT_MAX_LEN)>0)){
         log("<%s buff:%s >", __func__, buff);
         if(strncmp(buff, "lcd.start", strlen("lcd.start")) == 0){
-            rsrc->hasLoaded = 1;
+            r->hasReset = 1;
         }
         // to meet get command, format: p[str]0xff 0xff 0xff
         else if(uiIsGetResp((u8*)buff, 111)){
         }
-        for (pgNode=rsrc->pageLst; pgNode != NULL; pgNode=pgNode->nxt)
+        for (pgNode=r->pageLst; pgNode != NULL; pgNode=pgNode->nxt)
         {
             if(pgNode->obj.cmd(&pgNode->obj.rsrc, buff)){    break;    }
         }
     }
 }
 
-static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout){
+static s8 uiWaitReady(uiRsrc_T* r, u32 timeout){
     u32 tick = 0;
     char buff[UI_TEXT_MAX_LEN] = {0};
 
     while(tick < timeout){
-        rsrc->uiPrint("get pgxx.t_about.txt");
+        r->print("get pgxx.t_about.txt");
         HAL_Delay(100);
-        rsrc->pUartDev->RxPolling(&rsrc->pUartDev->rsrc);
-        if(fetchLineFromRingBuffer(&rsrc->pUartDev->rsrc.rxRB, buff, UI_TEXT_MAX_LEN)){
-            if(sscanf(buff, "max tester %s", rsrc->ver) == 1){
-                log("LCD Ver%s\n", rsrc->ver);
+        if(r->fetch(buff, UI_TEXT_MAX_LEN)){
+            if(sscanf(buff, "max tester %s", r->ver) == 1){
+                log("LCD Ver%s\n", r->ver);
                 return 0;
             }
         }
@@ -156,7 +162,8 @@ static s8 uiWaitReady(uiRsrc_T* rsrc, u32 timeout){
 }
 
 static s8 uiPage(uiRsrc_T* r, const char* PAGE){
-    r->uiPrint("page %s", PAGE);
+    r->print("page %s", PAGE);
+    r->curPage = PAGE;
     return 0;
 }
 
@@ -185,8 +192,21 @@ static s8 uiGet(uiRsrc_T* r, const char* PAGE, const char* COMPONENT, char* ATTR
     return 0;
 }
 
+static s8 uiFill(uiRsrc_T *r, const char* PAGE, u16 x, u16 y, u16 w, u16 h, const char* COLOR){
+    if(strncmp(PAGE, r->curPage, strlen(r->curPage)) !=0){
+        r->print("page %s", PAGE);
+        r->curPage = PAGE;
+    }
+    r->print("fill %d,%d,%d,%d,%s", x,y,w,h,COLOR);
+}
+
+static s32 uiReset(uiRsrc_T* r){
+    r->hasReset = 0;
+    r->print("rest");
+}
+
 static s8 uiVisual(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, u8 vis){
-    r->uiPrint("vis %s.%s %d", PAGE, COMPONENT, vis);
+    r->print("vis %s.%s %d", PAGE, COMPONENT, vis);
     return 0;
 }
 
@@ -195,7 +215,6 @@ static s8 uiBind(uiRsrc_T *r, const char* PAGE, const char* COMPONENT, const cha
     if(obj != NULL){    return(obj->bind(&obj->rsrc, EVENT, cb));    }
     return -1;
 }
-
 
 /**********************************************************
  == THE END ==

@@ -79,57 +79,29 @@ uiComponentNode* uiComponentInsert(uiComponentNode** head,
 static u8 uiComponent_cmd(uiComponent_rsrc_t* rsrc, const char* MSG){
 //    log("<%s MSG:%s name:%s >", __func__, MSG, rsrc->name);
     s32 i,val;
-    char str[UI_TEXT_MAX_LEN] = {0};
     const char* msg;
+    float f;
+    s32 d;
 
     i = strlen(rsrc->name);
     if(i>0 && strncmp(MSG, rsrc->name, i) != 0){
-//        log("</%s strncmp >", __func__);
         return 0;
     }
     msg = &MSG[i+1];
-//    log("<%s i:%d msg:%s >", __func__, i, msg);
-
-    if(sscanf(msg, UI_EVNT_EDIT_NUM, &val) == 1){
-        for(i=0;i<UI_MAX_EVENT;i++){
-            if(strncmp(rsrc->cbTab[i].evnt, UI_EVNT_EDIT_NUM, strlen(UI_EVNT_EDIT_NUM)) == 0){
-                if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, val);    }
-            }
+    log("<%s msg:%s >", __func__, msg);
+    
+    for(i=0;i<UI_MAX_EVENT;i++){
+        if(rsrc->cbTab[i].cb == NULL){
+            continue;
         }
-//        log("</%s UI_EVNT_EDIT_NUM >", __func__);
-        return 1;
-    }
-    else if(sscanf(msg, UI_EVNT_EDIT_STR, str) == 1){
-        for(i=0;i<UI_MAX_EVENT;i++){
-            if(strncmp(rsrc->cbTab[i].evnt, UI_EVNT_EDIT_STR, strlen(UI_EVNT_EDIT_STR)) == 0){
-                if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, str);    }
-            }
+        log("<%s event:%s >", __func__, rsrc->cbTab[i].evnt);
+        if(rsrc->cbTab[i].cb(msg) == 0){
+            log("</%s evnt:'%s' >", __func__, rsrc->cbTab[i].evnt);
+            return 1;
         }
-//        log("</%s UI_EVNT_EDIT_STR >", __func__);
-        return 1;
     }
-    else if(strncmp(msg, UI_EVNT_CLICK, strlen(UI_EVNT_CLICK)) == 0){
-        msg = &msg[strlen(UI_EVNT_CLICK)+1];
-        for(i=0;i<UI_MAX_EVENT;i++){
-            if(strncmp(rsrc->cbTab[i].evnt, UI_EVNT_CLICK, strlen(UI_EVNT_CLICK)) == 0){
-                if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, msg);    }
-            }
-        }
-//        log("</%s UI_EVNT_CLICK >", __func__);
-        return 1;
-    }
-    else if(strncmp(msg, UI_EVNT_DCLICK, strlen(UI_EVNT_DCLICK)) == 0){
-        msg = &msg[strlen(UI_EVNT_DCLICK)+1];
-        for(i=0;i<UI_MAX_EVENT;i++){
-            if(strncmp(rsrc->cbTab[i].evnt, UI_EVNT_CLICK, strlen(UI_EVNT_CLICK)) == 0){
-                if(rsrc->cbTab[i].cb){    rsrc->cbTab[i].cb(1, msg);    }
-            }
-        }
-//        log("</%s UI_EVNT_DCLICK >", __func__);
-        return 1;
-    }
-//    log("</%s >", __func__);
-    return 0;
+    log("</%s 'unknown_event' >", __func__, rsrc->cbTab[i].evnt);
+    return 2;
 }
 
 static s8 uiComponent_set(uiComponent_rsrc_t* rsrc, const char* attr, const char* VAL){

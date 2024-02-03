@@ -54,7 +54,7 @@ u8 rampCmdU8(void *dev, u8* cmd, u8 len, void (*xprint)(const char* FORMAT_ORG, 
 }
 
 u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_ORG, ...)){
-    s32 i,j;
+    s32 i,j,ii,jj;
     const char* line;
     rampDev_t *d = dev;
     rampRsrc_t *r = &d->rsrc;
@@ -77,7 +77,7 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
     else if(sscanf(line, "gohome %d", &i)==1){
         if(d->isRotating(r) == 0){
             d->gohome(r, i);
-            xprint("+ok@%d.%s.homing(%d)\r\n", brdAddr, r->name, i);
+            xprint("+ok@%d.%s.gohome(%d)\r\n", brdAddr, r->name, i);
         }
         else{
             xprint("+ok@%d.%s.gohome(\"busy\")\r\n", brdAddr, r->name);
@@ -107,23 +107,13 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
 
     //    .moveto(absPos)
     else if(sscanf(line, "moveto %d %d", &i, &j)==2){
-        if(d->isRotating(r) == 0){
-            r->spdMax = j;
-            d->moveTo(r,i);
-            xprint("+ok@%d.%s.moveto(%d,%d)\r\n", brdAddr, r->name, i, r->spdMax);
-        }
-        else{
-            xprint("+err@%d.%s.moveto(\"busy\")\r\n", brdAddr, r->name);
-        }
+        r->spdMax = j;
+        d->moveTo(r,i);
+        xprint("+ok@%d.%s.moveto(%d,%d)\r\n", brdAddr, r->name, i, r->spdMax);
     }
     else if(sscanf(line, "moveto %d", &i)==1){
-        if(d->isRotating(r) == 0){
-            d->moveTo(r,i);
-            xprint("+ok@%d.%s.moveto(%d)\r\n", brdAddr, r->name, i);
-        }
-        else{
-            xprint("+err@%d.%s.moveto(\"busy\")\r\n", brdAddr, r->name);
-        }
+        d->moveTo(r,i);
+        xprint("+ok@%d.%s.moveto(%d)\r\n", brdAddr, r->name, i);        
     }
 
     //    .moveby(refPos)
@@ -186,9 +176,18 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
 
     //    .default()
     else if(strncmp(line, "default", strlen("default")) == 0){
-        r->spdMin = 10000;
+        r->spdMin = 60000;
         r->spdMax = 64000;
         xprint("+ok@%d.%s.default()\r\n", brdAddr, r->name);
+    }
+    
+    //    .speed(min,max)
+    else if(sscanf(line, "speed %d %d %d %d", &i,&j,&ii,&jj)==4){
+        r->spdMin = i;
+        r->spdMax = j;
+        d->setSpeedTab(r,ii);
+        r->pulsePerSpot = jj;
+        xprint("+ok@%d.%s.speed(%d,%d,%d,%d)\r\n", brdAddr, r->name, i,j,ii,jj);
     }
 
     //    .speed(min,max)
@@ -209,16 +208,17 @@ u8 rampCmd(void *dev, char* CMD, u8 brdAddr, void (*xprint)(const char* FORMAT_O
         else if(i==2){ xprint("+ok@%d.%s.is_sheltered('right')\r\n", brdAddr, r->name);   }
         else{ xprint("+ok@%d.%s.is_sheltered('error')\r\n", brdAddr, r->name);   }
     }
-
-    else if(strncmp(line, "turn_left", strlen("turn_left")) == 0){
-        writePin(d->rsrc.DIR, GPIO_PIN_RESET);
-        xprint("+ok@%d.%s.turn_left()\r\n", brdAddr, r->name);
+    
+    //    .speed(min,max)
+    else if(sscanf(line, "test %d ", &i)==1){
+        d->testMul(r,i);
+        xprint("+ok@%d.%s.test(%d)\r\n", brdAddr, r->name, i);
     }
     
-    else if(strncmp(line, "turn_right", strlen("turn_right")) == 0){
-        writePin(d->rsrc.DIR, GPIO_PIN_SET);
-        xprint("+ok@%d.%s.turn_right()\r\n", brdAddr, r->name);
-    }
+    else if(sscanf(line, "spot_count %d ", &i)==1){
+        r->pulsePerSpot = i;
+        xprint("+ok@%d.%s.spot_count(%d)\r\n", brdAddr, r->name, i);
+    }    
     
     else{
         xprint("+unknown@%s", CMD);

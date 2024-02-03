@@ -23,7 +23,7 @@
  * DEFINES
  *****************************************************************************************
  */
-#define MAX_LOG_LEN (256)
+#define MAX_LOG_LEN (128)
 
 /*
  * LOCAL VARIABLE DEFINITIONS

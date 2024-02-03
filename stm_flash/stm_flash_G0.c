@@ -22,7 +22,7 @@ int32_t stmFlsh_initial(uint32_t startPage, uint8_t pages){
 
 int32_t stmFlsh_write(uint16_t addr, const uint8_t *pDat, uint16_t nBytes){
     uint32_t startAddr, endAddr;
-    u32 i,j,tick;
+    u32 i,j;
     u8 mem[FLASH_PAGE_SIZE], *p;
 
     memcpy(mem, (u8*)STM_FLASH_START_ADDR, FLASH_PAGE_SIZE);
@@ -58,7 +58,6 @@ int32_t stmFlsh_write(uint16_t addr, const uint8_t *pDat, uint16_t nBytes){
 //    thread_delay(100);
     
     if(emptyChk != 0xff){
-        tick = HAL_GetTick();
         stmFlsh_format();
 //        log("<%s eraseTim: %d >", __func__, HAL_GetTick()-tick);
         startAddr = STM_FLASH_START_ADDR;
@@ -69,7 +68,6 @@ int32_t stmFlsh_write(uint16_t addr, const uint8_t *pDat, uint16_t nBytes){
 //    }
     
     HAL_FLASH_Unlock();
-    tick = HAL_GetTick();
 
 //    log("<%s startAddr:0x%08x >", __func__, startAddr);
 //    log("<%s endAddr:0x%08x >", __func__, endAddr);

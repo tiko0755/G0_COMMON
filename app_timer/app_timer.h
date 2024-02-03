@@ -50,6 +50,8 @@ typedef struct {
     uint32_t (*status)(appTmrRsrc_t* rsrc);
 }appTmrDev_t;
 
+typedef appTmrDev_t* (*assignTmrDev)(uint8_t count);
+
 #pragma pack(pop)           //recover align bytes from 4 bytes
 
 /*

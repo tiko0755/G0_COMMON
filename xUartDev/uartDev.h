@@ -75,15 +75,28 @@ typedef struct{
 void setupUartDev(
     UartDev_t *pDev, 
     UART_HandleTypeDef* huart,
-		appTmrDev_t* tObj,
+	appTmrDev_t* tObj,
     u8* txPool, u16 txPoolLen,
     u8* rxPool,    u16    rxPoolLen,
     u8* rxDoubleBuff,    u16 rxBufLen, u16 rxPollingTim
 );
 
+void setupUartDev_2(
+    UartDev_t *pDev, 
+    UART_HandleTypeDef* huart,
+	appTmrDev_t* tObj,
+    u8* txPool, u16 txPoolLen,
+    u8* rxPool,    u16    rxPoolLen,
+    u8* rxDoubleBuff,    u16 rxBufLen, u16 rxPollingTim,
+    s8 (*beforeSend)(void),
+    s8 (*afterSend)(UART_HandleTypeDef *huart)
+);
+
+
 u16 fetchLineFromRingBuffer(RINGBUFF_T* rb, char* line, u16 len);
 u16 fetchLineFromRingBufferU8(RINGBUFF_T* rb, u8* line, u16 len);
 s32 fetchLineFromRingBufferX(RINGBUFF_T* rb, const u8* SYMBOL, u8 symbol_len, u8* line, u16 len);
+u16 fetchFrameFromRingBuffer(RINGBUFF_T* rb, u8* frame, u16 len);
 
 #endif /* _MY_UART_H */
 

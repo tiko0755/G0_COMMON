@@ -32,16 +32,16 @@ static void cmdConsumerTmr_handle(void* p_ctx);
  */
 void setup_cmdConsumer(cmdConsumerDev_t* d, 
     RINGBUFF_T* rb,             // command line in a ringbuffer
-    cmd_fetchLine fetch,    // fetchLine method    
+    cmd_fetchLine fetch,        // fetchLine method    
     XPrint xprint,              // print out
-    cmd_forward xForward,            // print out
-    appTmrDev_t* tmr,           // timer
+    cmd_forward xForward,       // print out
+    appTmrDev_t* tObj,          // timer
     u16 interval                // unit in ms, polling rb each interval
 ){
     cmdConsumerRsrc_t* r = &d->rsrc;
     memset(d,0,sizeof(cmdConsumerDev_t));
     
-    r->tmrID = tmr;
+    r->tmrID = tObj;
     r->interval = interval;
     r->rb = rb;    
     r->xprint = xprint;

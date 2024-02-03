@@ -72,13 +72,14 @@ static void appTmr_isr(appTmrRsrc_t* r, uint16_t tick){
             return;
         }
         CB1 cbTemp = r->handler;    // prevent reentrancy
-        r->handler = NULL;
         if(r->type == ISR_REPEAT){
+            r->handler = NULL;
             cbTemp(r->ptx);
             r->tick = 0;
             r->handler = cbTemp;
         }
         else if(r->type == ISR_ONESHOT){
+            r->handler = NULL;
             cbTemp(r->ptx);
         }
     }
@@ -87,20 +88,19 @@ static void appTmr_isr(appTmrRsrc_t* r, uint16_t tick){
 static void appTmr_polling(appTmrRsrc_t* r){
     if(r->handler == NULL){ return;     }
     if(r->tick >= r->interval){
-        CB1 cbTemp = r->handler;    // prevent reentrancy
-        r->handler = NULL;        
+        CB1 cbTemp = r->handler;    // prevent reentrancy 
         if(r->type == POLLING_REPEAT){
             /*
             During this process, if its calling a thread_delay, this need prevent reentrancy.
             */
+            r->handler = NULL; 
             cbTemp(r->ptx);
             r->handler = cbTemp;
             r->tick = 0;
         }
         else if(r->type == POLLING_ONESHOT){
+            r->handler = NULL; 
             cbTemp(r->ptx);
         }
     }
 }
-
-
